@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>원의 비밀 탐정단</title>
+<style>
+:root{
+  /* 연못과 모눈종이: 하늘빛 모눈 바탕 위 둥근 카드. 외부 글꼴 없이 기기 글꼴 사용 */
+  --bg:#eaf4ff; --paper:#ffffff; --ink:#28364f; --muted:#5d6b85;
+  --pink:#ff6f91; --blue:#3d8bfd; --mint:#1fae88; --sun:#ffc23c; --violet:#8a6cff;
+  --line:#c9dcf5; --soft:#f4f9ff; --ok:#13865f; --warn:#c2410c;
+  --display:"Jua","BM JUA_TTF","NanumSquareRound","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --body:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR","NanumGothic",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;line-height:1.55;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:28px 28px}
+h1,h2,h3,.disp{font-family:var(--display);font-weight:700;text-wrap:balance;margin:0;letter-spacing:-.3px}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.wrap{max-width:1200px;margin:0 auto;padding:12px 16px 250px}
+
+header.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--paper);border-radius:22px;padding:10px 16px;box-shadow:0 4px 0 #d3e3f7}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:28px}
+.brand h1 span{color:var(--pink)}
+.team{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--muted)}
+.team input{width:140px;border:2px solid var(--line);border-radius:12px;padding:4px 10px;background:var(--soft)}
+.hright{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{font-family:var(--display);font-weight:700;font-size:17px;border-radius:999px;padding:3px 14px;background:var(--soft);border:2px solid var(--line)}
+.pill.sun{background:var(--sun);border-color:#e0a51c}
+
+nav.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
+nav.steps button{border:0;border-radius:18px;padding:10px 6px;background:var(--paper);box-shadow:0 4px 0 #d3e3f7;font-family:var(--display);font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;gap:8px}
+nav.steps button .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--soft);border:2px solid var(--line);font-size:15px}
+nav.steps button .st{font-size:13px;font-weight:400;color:var(--muted)}
+nav.steps button[aria-current="true"]{background:var(--blue);color:#fff;box-shadow:0 4px 0 #2a6cd0}
+nav.steps button[aria-current="true"] .st{color:#e6efff}
+nav.steps button[aria-current="true"] .n{background:#fff;color:var(--blue);border-color:#fff}
+nav.steps button.done .n{background:var(--mint);color:#fff;border-color:var(--mint)}
+nav.steps button[aria-disabled="true"]{opacity:.55}
+
+.card{background:var(--paper);border-radius:22px;padding:18px 20px;box-shadow:0 4px 0 #d3e3f7}
+.card h2{font-size:24px;margin-bottom:6px}
+.card h3{font-size:20px;margin-bottom:6px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:14px}
+.muted{color:var(--muted)}
+.tag{display:inline-block;font-size:15px;border-radius:999px;padding:2px 12px;background:var(--soft);border:2px solid var(--line)}
+.tag b{font-family:var(--display)}
+.tag.pink{background:#ffe3ea;border-color:#ffc3d1;color:#b0284f}
+.tag.blue{background:#e2eeff;border-color:#bcd5ff;color:#2257b5}
+.tag.mint{background:#dcf6ee;border-color:#a9e8d5;color:#0d6e50}
+.screen{display:none}
+.screen.on{display:block;animation:pop .2s ease}
+@keyframes pop{from{transform:translateY(5px);opacity:.7}to{transform:none;opacity:1}}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips.col{flex-direction:column;align-items:flex-start}
+.chip{border:2px solid var(--line);background:var(--soft);border-radius:999px;padding:6px 14px;font-size:17px;text-align:left}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.chip[aria-pressed="true"]::before{content:"● "}
+.chip.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.chip.right::before{content:"✔ "}
+.chip.wrong{background:#fff0e8;border-color:#ffb393;color:var(--warn)}
+.chip.wrong::before{content:"✗ "}
+.chip:disabled{opacity:.5;cursor:not-allowed}
+.btn{border:0;border-radius:16px;padding:10px 18px;font-family:var(--display);font-weight:700;font-size:18px;background:var(--blue);color:#fff;box-shadow:0 4px 0 #2a6cd0}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #2a6cd0}
+.btn.pink{background:#e8547a;box-shadow:0 4px 0 #c23c61}
+.btn.mint{background:var(--mint);box-shadow:0 4px 0 #11805f}
+.btn.ghost{background:var(--paper);color:var(--ink);border:2px solid var(--line);box-shadow:0 3px 0 var(--line)}
+.btn.small{font-size:15px;padding:6px 12px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.fb{min-height:1.4em;font-size:17px;margin-top:6px}
+.fb.ok{color:var(--ok)} .fb.ok::before{content:"✔ "}
+.fb.no{color:var(--warn)} .fb.no::before{content:"? "}
+.fb.info{color:var(--blue)}
+textarea,input[type=text],input[type=number],input[type=url],select{border:2px solid var(--line);border-radius:12px;padding:6px 10px;background:var(--soft)}
+textarea{width:100%;min-height:62px;resize:vertical}
+label.q{font-family:var(--display);font-weight:700;font-size:18px;display:block;margin:12px 0 6px}
+.need{color:var(--warn);font-size:14px;font-family:var(--body);font-weight:400}
+
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.subtabs button{border:2px solid var(--line);background:var(--paper);border-radius:14px;padding:6px 14px;font-family:var(--display);font-weight:700;font-size:17px}
+.subtabs button[aria-current="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.subtabs button[aria-disabled="true"]{opacity:.5}
+
+.boardbox{background:var(--paper);border-radius:22px;padding:10px;box-shadow:0 4px 0 #d3e3f7}
+svg.board{width:100%;height:auto;display:block;touch-action:none;user-select:none;-webkit-user-select:none;border-radius:14px;background:#fbfdff}
+.unitnote{font-size:14px;color:var(--muted);margin:6px 4px 0}
+.readout{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-variant-numeric:tabular-nums}
+.slider{display:flex;align-items:center;gap:10px;margin:8px 0}
+.slider input{flex:1;accent-color:#e8547a;height:30px}
+.slider .val{font-family:var(--display);font-weight:700;font-size:21px;min-width:96px;text-align:right;color:#c23c61}
+.slider input:disabled{opacity:.4}
+.toggles{display:flex;gap:6px;flex-wrap:wrap}
+.toggles label{display:flex;align-items:center;gap:4px;border:2px solid var(--line);border-radius:999px;padding:3px 10px;background:var(--soft);font-size:15px;cursor:pointer}
+.lock{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 12px;font-size:15px;border:2px solid}
+.lock.on{background:#fff3d6;border-color:#f0b429;color:#7a4d00}
+.lock.off{background:var(--soft);border-color:var(--line);color:var(--muted)}
+.checks{list-style:none;padding:0;margin:6px 0;display:flex;flex-direction:column;gap:4px}
+.checks li{display:flex;gap:8px;align-items:center}
+.checks li .b{min-width:46px;height:24px;border-radius:999px;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;flex:none;padding:0 6px}
+.checks li.ok .b{background:var(--mint);border-color:var(--mint);color:#fff}
+.checks li.no .b{background:#fff0e8;border-color:#ffb393;color:var(--warn)}
+
+table.rec{width:100%;border-collapse:separate;border-spacing:0;font-size:16px;font-variant-numeric:tabular-nums}
+table.rec th,table.rec td{border-bottom:2px solid var(--line);padding:7px 6px;text-align:center}
+table.rec th{font-family:var(--display);font-weight:700;background:var(--soft)}
+.tablebox{overflow-x:auto}
+
+.letter{background:#fff7e0;border:3px dashed var(--sun);border-radius:18px;padding:14px 16px;position:relative}
+.letter .stamp{position:absolute;right:12px;top:-14px;background:#e8547a;color:#fff;font-family:var(--display);font-weight:700;padding:2px 12px;border-radius:10px;transform:rotate(5deg)}
+.qlist{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.qitem{background:var(--soft);border:2px solid var(--line);border-radius:14px;padding:6px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.qitem .x{margin-left:auto;border:0;background:none;color:var(--muted);font-size:15px;text-decoration:underline}
+.frame{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:18px}
+.lockedmsg{text-align:center;padding:40px 20px}
+.askcards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.askcards button{border:2px dashed #bcd5ff;background:#f3f8ff;border-radius:16px;padding:10px;font-size:16px;text-align:left}
+.askcards button[aria-pressed="true"]{border-style:solid;border-color:var(--blue);background:#e2eeff}
+.timer{font-family:var(--display);font-weight:700;font-size:28px;font-variant-numeric:tabular-nums;min-width:70px;text-align:center}
+.pairs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcard{border:2px solid var(--line);border-radius:16px;padding:10px;background:var(--soft)}
+.pcard.active{border-color:var(--blue);background:#eef5ff}
+.stars{display:flex;gap:4px;font-size:30px;line-height:1}
+.stars span{color:#d5deea}
+.stars span.got{color:#f5a700}
+
+.coach{position:fixed;right:14px;bottom:12px;display:flex;align-items:flex-end;gap:8px;z-index:20;max-width:min(470px,calc(100% - 28px))}
+.coach .bubble{background:var(--paper);border:3px solid var(--ink);border-radius:20px 20px 4px 20px;padding:10px 14px;font-size:16px;box-shadow:0 4px 0 rgba(40,54,79,.15)}
+.coach .bubble .who{font-family:var(--display);font-weight:700;color:var(--blue)}
+.coach .bubble .row{margin-top:6px;gap:6px}
+.coach .bubble button{border:2px solid var(--line);background:var(--soft);border-radius:999px;padding:2px 10px;font-size:14px}
+.coach .bubble input{flex:1;min-width:120px;font-size:15px;padding:3px 8px}
+.coach svg{flex:none;width:84px;height:84px;cursor:pointer}
+.coach.min .bubble{display:none}
+
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
+.badge{border:2px dashed var(--line);border-radius:16px;padding:8px;text-align:center;font-size:14px;color:var(--muted);background:var(--soft)}
+.badge .ic{font-size:22px;display:block;color:#c7d3e3}
+.badge.got{border-style:solid;border-color:#e0a51c;background:#fff6d8;color:var(--ink)}
+.badge.got .ic{color:#f5a700}
+.toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-150%);background:var(--ink);color:#fff;font-family:var(--display);font-weight:700;font-size:19px;padding:10px 22px;border-radius:999px;z-index:50;transition:transform .3s ease;max-width:90%;text-align:center}
+.toast.show{transform:translate(-50%,0)}
+.modal{position:fixed;inset:0;background:rgba(40,54,79,.45);display:none;align-items:flex-start;justify-content:center;z-index:60;overflow:auto;padding:24px 12px}
+.modal.on{display:flex}
+.modal .card{max-width:420px;width:100%}
+.modal .card.wide{max-width:920px}
+.principle{font-size:19px;line-height:2.1}
+.principle select,.principle input{font-size:17px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.compare .box{border:2px solid var(--line);border-radius:16px;padding:10px;background:var(--soft)}
+.compare .box h3{font-size:17px;color:var(--muted)}
+.guide table{width:100%;border-collapse:collapse;font-size:15px}
+.guide th,.guide td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.guide th{background:var(--soft);font-family:var(--display)}
+.guide h3{margin:14px 0 6px}
+.guide ul{margin:4px 0;padding-left:20px}
+#printSheet{display:none}
+@media (max-width:860px){
+  .grid2,.pairs,.compare{grid-template-columns:1fr}
+  nav.steps button{font-size:14px;flex-direction:column;gap:2px}
+  .coach svg{width:62px;height:62px}
+  .askcards{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{
+  body{background:#fff;font-size:12pt}
+  body>*:not(#printSheet){display:none!important}
+  #printSheet{display:block}
+  #printSheet h1{font-size:18pt;margin-bottom:8px}
+  #printSheet table{width:100%;border-collapse:collapse}
+  #printSheet th,#printSheet td{border:1px solid #888;padding:5px 7px;text-align:left;vertical-align:top}
+  #printSheet th{width:24%;background:#eef}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header class="top">
+    <div class="brand"><svg width="54" height="54" viewBox="0 0 100 100" aria-hidden="true" id="logoMascot"></svg><h1>원의 비밀 <span>탐정단</span></h1></div>
+    <div class="team"><label for="teamName">팀 이름(선택)</label><input id="teamName" type="text" maxlength="12" placeholder="예: 동글동글 팀"></div>
+    <div class="hright">
+      <span class="pill">배지 <span id="badgeCount">0</span>/13</span>
+      <span class="pill sun" title="미션 별">탐정 별 <span id="starCount">0</span>/3</span>
+      <button class="btn ghost small" id="openGuide">교사용 안내</button>
+    </div>
+  </header>
+
+  <nav class="steps" aria-label="탐정 수사 순서">
+    <button data-go="case"><span class="n">1</span><span>사건 접수<br><span class="st">3분</span></span></button>
+    <button data-go="lab"><span class="n">2</span><span>원 실험실<br><span class="st">8분</span></span></button>
+    <button data-go="meet"><span class="n">3</span><span>탐정 회의<br><span class="st">7분</span></span></button>
+    <button data-go="mission"><span class="n">4</span><span>탐정 미션<br><span class="st">5분</span></span></button>
+    <button data-go="report"><span class="n">5</span><span>탐정 보고서<br><span class="st">3분</span></span></button>
+  </nav>
+
+  <!-- ============ 1. 사건 접수 ============ -->
+  <section class="screen" id="s-case">
+    <div class="grid2">
+      <div class="stack">
+        <div class="card">
+          <div class="letter">
+            <span class="stamp">긴급 의뢰</span>
+            <h2>연못에 수상한 동그라미가 나타났다!</h2>
+            <p style="margin:6px 0 0">돌을 물 위로 튀기며 던졌더니(물수제비), <b>크기가 다른 원</b>이 여러 개 그려지며 퍼져 나갔어요.
+            탐정단은 이 무늬를 <b>컴퍼스로 똑같이</b> 그려야 해요. 어떻게 하면 크기가 다른 원을 그릴 수 있을까요?</p>
+          </div>
+          <svg class="board" id="pondSvg" viewBox="0 0 480 280" style="margin-top:12px" role="img" aria-label="물수제비가 만든 원 무늬"></svg>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <h2>탐정의 첫 예상</h2>
+          <p class="muted" style="margin:0">정답이 아니어도 괜찮아요. 지금 생각을 그대로 골라요.</p>
+          <label class="q">① 크기가 다른 원을 그리려면? <span class="need">(필수)</span></label>
+          <div class="chips col" id="predSize">
+            <button class="chip" data-v="c">중심을 옮기면 된다</button>
+            <button class="chip" data-v="r">반지름을 바꾸면 된다</button>
+            <button class="chip" data-v="both">중심과 반지름을 둘 다 바꿔야 한다</button>
+            <button class="chip" data-v="dk">잘 모르겠다</button>
+          </div>
+          <label class="q">② 물수제비 원들의 중심은? <span class="need">(필수)</span></label>
+          <div class="chips" id="predCenter">
+            <button class="chip" data-v="same">모두 같은 곳</button>
+            <button class="chip" data-v="diff">원마다 다른 곳</button>
+            <button class="chip" data-v="dk">잘 모르겠다</button>
+          </div>
+          <label class="q" for="predWhy">③ 그렇게 생각한 이유 한 문장 <span class="need">(필수)</span></label>
+          <textarea id="predWhy" placeholder="예: 원들이 가운데에서 퍼져 나가니까"></textarea>
+        </div>
+        <div class="card">
+          <h2>탐정 질문 만들기 <span class="need">(1개 이상)</span></h2>
+          <div class="frame">
+            만약
+            <select id="qa" aria-label="바꿀 것"><option value="">___</option><option>중심</option><option>반지름</option><option>컴퍼스를 벌린 길이</option></select>
+            을(를)
+            <select id="qb" aria-label="어떻게"><option value="">___</option><option>그대로 두고</option><option>옮기면</option><option>늘리면</option><option>줄이면</option></select>
+            <select id="qd" aria-label="궁금한 것"><option value="">___</option><option>원의 크기는</option><option>원의 위치는</option><option>지름은</option><option>무늬는</option></select>
+            어떻게 될까?
+          </div>
+          <div class="row" style="margin-top:8px"><button class="btn pink" id="addQ">질문 붙이기</button></div>
+          <div class="fb" id="qFb"></div>
+          <div class="qlist" id="qList"></div>
+        </div>
+        <div class="card">
+          <div class="row"><button class="btn mint" id="savePred">예상 저장하고 실험실로 출동</button></div>
+          <div class="fb" id="predFb"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. 원 실험실 ============ -->
+  <section class="screen" id="s-lab">
+    <div class="subtabs" id="labTabs">
+      <button data-sub="A">실험 A: 중심 고정</button>
+      <button data-sub="B">실험 B: 반지름 고정</button>
+      <button data-sub="clue">단서 수집: 원의 성질</button>
+    </div>
+    <div class="grid2">
+      <div class="boardbox">
+        <svg class="board" id="labSvg" role="img" aria-label="원 실험 판"></svg>
+        <p class="unitnote">모눈 한 칸 = 1단위. 화면의 1단위는 cm가 아니에요. 컴퍼스로 그릴 때는 1단위를 1cm로 그려요.</p>
+        <div class="readout" id="labReadout"></div>
+      </div>
+      <div class="stack" id="labSide"></div>
+    </div>
+  </section>
+
+  <!-- ============ 3. 탐정 회의 ============ -->
+  <section class="screen" id="s-meet">
+    <div class="subtabs" id="meetTabs">
+      <button data-card="a">증거물 ㉠</button>
+      <button data-card="b">증거물 ㉡</button>
+      <button data-card="talk">짝 회의</button>
+      <button data-card="compass">컴퍼스 검증</button>
+    </div>
+    <div class="grid2" id="meetMain">
+      <div class="boardbox">
+        <svg class="board" id="meetSvg" role="img" aria-label="증거물 모양 카드"></svg>
+        <p class="unitnote">모눈 한 칸 = 1단위 (컴퍼스로는 1cm)</p>
+        <div class="readout" id="meetReadout"></div>
+      </div>
+      <div class="stack" id="meetSide"></div>
+    </div>
+    <div id="talkBox" style="display:none" class="stack">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2>짝 회의: 말하기 순서</h2>
+          <div class="row"><span class="timer" id="timerView">30</span><button class="btn ghost small" id="timerBtn">30초 타이머 시작</button><button class="btn ghost small" id="swapRole">역할 바꾸기</button></div>
+        </div>
+        <p class="muted" style="margin:4px 0 0" id="orderText"></p>
+      </div>
+      <div class="pairs">
+        <div class="pcard" id="pcA"><h3 id="pcAt">짝 A의 주장</h3><textarea id="claimA" placeholder="예: 작은 원의 지름은 큰 원의 반지름과 같아. 왜냐하면 둘 다 2단위였어."></textarea></div>
+        <div class="pcard" id="pcB"><h3 id="pcBt">짝 B의 주장</h3><textarea id="claimB" placeholder="예: 중심이 같아도 반지름이 다르면 다른 원이야. 물수제비처럼!"></textarea></div>
+      </div>
+      <div class="card">
+        <h3>근거 질문 카드 (눌러서 친구에게 물어봐요)</h3>
+        <div class="askcards" id="askCards">
+          <button data-i="0">왜 그렇게 생각해?</button>
+          <button data-i="1">어떤 조건을 같게 두었어?</button>
+          <button data-i="2">반례가 있을까?</button>
+          <button data-i="3">컴퍼스로도 확인할 수 있을까?</button>
+        </div>
+        <label class="q" for="askAns">질문에 대한 대답(근거)</label>
+        <textarea id="askAns" placeholder="질문 카드를 고르고, 친구의 대답을 적어요."></textarea>
+        <div class="row"><button class="btn" id="saveAsk">근거 기록하기</button></div>
+        <div class="qlist" id="askList"></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>논쟁 사건</h2>
+          <div class="letter" style="margin-top:6px"><b>용의자의 주장</b><br>“중심이 같으면 같은 원이다!”</div>
+          <label class="q">이 주장은?</label>
+          <div class="chips" id="debate1"><button class="chip" data-v="y">맞아요</button><button class="chip" data-v="n">틀렸어요</button></div>
+          <label class="q">가장 좋은 근거는?</label>
+          <div class="chips col" id="debate2">
+            <button class="chip" data-v="a">중심이 같으면 반지름이 달라도 같은 원이다.</button>
+            <button class="chip" data-v="b">중심이 같아도 반지름이 다르면 크기가 다른 원이다.</button>
+            <button class="chip" data-v="c">원은 모두 똑같이 생겼다.</button>
+          </div>
+          <div class="fb" id="debateFb"></div>
+        </div>
+        <div class="card">
+          <h2>우리 짝의 최종 결론</h2>
+          <label class="q" for="conclusion">한 문장으로 써요</label>
+          <textarea id="conclusion" placeholder="크기가 다른 원을 그리려면 ○○는 그대로 두고 ○○를 바꾸면 된다."></textarea>
+          <div class="fb" id="conclFb"></div>
+        </div>
+      </div>
+    </div>
+    <div id="compassBox" style="display:none" class="grid2">
+      <div class="card">
+        <h2>컴퍼스로 직접 검증하기</h2>
+        <p style="margin:4px 0">탐구지에 컴퍼스로 <b>물수제비 무늬</b>를 그려요. 컴퍼스 침은 한 곳에 꽂고, 자에 대어 1cm, 2cm, 3cm로 벌려요.</p>
+        <p class="muted" style="margin:0">그린 뒤 자로 각 원의 반지름을 재어 적어요.</p>
+        <div class="tablebox" style="margin-top:8px"><table class="rec">
+          <thead><tr><th>원</th><th>벌린 길이(계획)</th><th>자로 잰 반지름</th><th>자로 잰 지름</th></tr></thead>
+          <tbody id="compassRows"></tbody></table></div>
+        <label class="q">앱에서 본 결과와 같았나요?</label>
+        <div class="chips" id="compassSame"><button class="chip" data-v="same">같았어요</button><button class="chip" data-v="diff">조금 달랐어요</button></div>
+        <label class="q" for="compassNote">다르다면 까닭은? / 그리면서 알게 된 점</label>
+        <textarea id="compassNote" placeholder="예: 컴퍼스가 조금 움직여서 반지름이 3.1cm가 되었다."></textarea>
+        <div class="fb" id="compassFb"></div>
+      </div>
+      <div class="card">
+        <h3>컴퍼스 검증 요령</h3>
+        <ul style="margin:4px 0;padding-left:20px">
+          <li>컴퍼스 침을 꽂은 곳 = 원의 중심</li>
+          <li>컴퍼스를 벌린 길이 = 원의 반지름</li>
+          <li>크기가 다른 원: 침은 그대로, 벌린 길이만 바꾸기</li>
+          <li>지름은 중심을 지나게 자를 대고 재기</li>
+        </ul>
+        <p class="muted">컴퍼스 끝은 뾰족해요. 친구 쪽으로 향하지 않게 조심해요.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. 탐정 미션 ============ -->
+  <section class="screen" id="s-mission">
+    <div class="row" style="margin-bottom:10px">
+      <div class="subtabs" id="misTabs" style="margin:0">
+        <button data-mis="snail">미션 1: 달팽이 집</button>
+        <button data-mis="flower">미션 2: 꽃무늬</button>
+        <button data-mis="bonus">보너스: 틀린 주장 잡기</button>
+      </div>
+      <div class="stars" id="starView" aria-label="탐정 별" style="margin-left:auto"></div>
+    </div>
+    <div class="grid2" id="misMain">
+      <div class="boardbox">
+        <svg class="board" id="misSvg" role="img" aria-label="미션 그리기 판"></svg>
+        <p class="unitnote">모눈 한 칸 = 1단위 (컴퍼스로는 1cm)</p>
+        <div class="readout" id="misReadout"></div>
+      </div>
+      <div class="stack" id="misSide"></div>
+    </div>
+    <div class="card" id="bonusBox" style="display:none;max-width:760px">
+      <h2>보너스: 틀린 주장 잡기</h2>
+      <div class="letter" style="margin-top:6px"><b>용의자의 주장</b><br>“큰 원을 그리려면 컴퍼스 침(중심)을 다른 곳으로 옮겨야 한다!”</div>
+      <label class="q">이 주장이 틀린 까닭으로 알맞은 것은?</label>
+      <div class="chips col" id="bonusQ">
+        <button class="chip" data-v="a">중심을 옮기면 원이 더 커지기 때문이다.</button>
+        <button class="chip" data-v="b">중심은 그대로 두고 컴퍼스를 더 벌려 반지름만 늘리면 큰 원을 그릴 수 있다.</button>
+        <button class="chip" data-v="c">큰 원은 컴퍼스로 그릴 수 없다.</button>
+      </div>
+      <label class="q" for="bonusWhy">오류를 내 말로 설명하기 <span class="need">(필수)</span></label>
+      <textarea id="bonusWhy" placeholder="원의 크기는 ○○가 정하기 때문에…"></textarea>
+      <div class="row" style="margin-top:8px"><button class="btn mint" id="bonusCheck">검사하기</button></div>
+      <div class="fb" id="bonusFb"></div>
+    </div>
+  </section>
+
+  <!-- ============ 5. 탐정 보고서 ============ -->
+  <section class="screen" id="s-report">
+    <div class="grid2">
+      <div class="stack">
+        <div class="card">
+          <h2>처음 예상과 마지막 결론</h2>
+          <div class="compare">
+            <div class="box"><h3>처음 예상</h3><div id="repPred"></div></div>
+            <div class="box"><h3>마지막 결론(짝 회의)</h3><div id="repFinal"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>오늘 밝혀낸 원의 비밀</h2>
+          <div class="principle">
+            크기가 다른 원을 그리려면 <select id="p1" aria-label="그대로 둘 것"><option value="">___</option><option>중심</option><option>반지름</option></select> 은(는) 그대로 두고
+            <select id="p2" aria-label="바꿀 것"><option value="">___</option><option>중심</option><option>반지름</option></select> 을(를) 바꾼다.<br>
+            원의 위치를 바꾸려면 <select id="p3" aria-label="옮길 것"><option value="">___</option><option>중심</option><option>반지름</option></select> 을(를) 옮긴다.<br>
+            그 이유는 <input type="text" id="p4" style="width:min(100%,420px)" placeholder="원의 크기는 ○○가, 위치는 ○○가 정하기 때문" aria-label="이유"> 이다.
+          </div>
+          <div class="fb" id="pFb"></div>
+          <label class="q" for="thinkNow">생각의 변화</label>
+          <textarea id="thinkNow" placeholder="처음에는 ○○라고 생각했는데, 실험해 보니 ○○였다."></textarea>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <h2>수사 기록 한눈에 보기</h2>
+          <div id="repSummary"></div>
+        </div>
+        <div class="card">
+          <h2>우리가 만든 질문, 해결했나요?</h2>
+          <div class="qlist" id="qResolve"></div>
+        </div>
+        <div class="card">
+          <h2>모은 탐정 배지</h2>
+          <div class="badges" id="badgeGrid"></div>
+        </div>
+        <div class="card">
+          <h2>보고서 내보내기</h2>
+          <p class="muted" style="margin:0 0 8px">기록은 이 기기 안에만 있어요. 학급 전체 결과가 자동으로 모이지는 않아요.</p>
+          <div class="row">
+            <button class="btn" id="printBtn">인쇄 / PDF 저장</button>
+            <button class="btn ghost" id="txtBtn">텍스트 저장</button>
+            <button class="btn ghost" id="csvBtn">CSV 저장</button>
+            <button class="btn ghost" id="copyBtn">복사하기</button>
+          </div>
+          <div class="fb" id="exportFb"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="muted" style="text-align:center;font-size:14px;margin-top:22px">
+    초등학교 3학년 수학 · 3-2-3. 원 · 4. 물수제비는 어떤 모양일까? · [4수03-06] 원의 중심, 반지름, 지름을 이해하고, 그 성질을 안다.<br>
+    입력한 내용은 이 기기의 브라우저에만 저장되며 외부로 보내지 않아요.
+    <button class="btn ghost small" id="resetAll">처음부터</button>
+  </p>
+</div>
+
+<div class="coach" id="coach">
+  <div class="bubble"><span class="who">동글 탐정</span> <span class="tag" id="coachMode" style="font-size:12px;padding:0 8px">질문 코치</span>
+    <div id="coachMsg" aria-live="polite"></div>
+    <div class="row"><input id="coachIn" type="text" placeholder="궁금한 점을 물어봐요" aria-label="코치에게 질문"><button id="coachAsk">묻기</button></div>
+    <div class="row"><button id="hintBtn">힌트 질문 더 보기</button><button id="coachMin">접기</button></div></div>
+  <svg viewBox="0 0 100 100" id="coachMascot" role="button" tabindex="0" aria-label="동글 탐정 말풍선 열고 닫기"></svg>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<div class="modal" id="resetModal"><div class="card"><h2>처음부터 다시 할까요?</h2><p>예상, 질문, 실험 기록, 짝 회의, 미션, 배지가 모두 지워져요. 공용 태블릿은 수업이 끝나면 초기화해 주세요.</p>
+  <div class="row"><button class="btn pink" id="resetYes">네, 모두 지울게요</button><button class="btn ghost" id="resetNo">아니요</button></div></div></div>
+
+<div class="modal" id="guideModal"><div class="card wide guide">
+  <div class="row" style="justify-content:space-between"><h2>교사용 안내</h2><button class="btn ghost small" id="closeGuide">닫기</button></div>
+  <p class="muted" style="margin:4px 0">3-2-3. 원 · 4. 물수제비는 어떤 모양일까? (수학 76~77쪽, 수학익힘 52~53쪽) · 5/8차시 · 원리탐구학습모형</p>
+  <h3>40분 수업 흐름</h3>
+  <table><thead><tr><th>단계(시간)</th><th>웹앱 화면</th><th>교실 활동</th><th>핵심 발문</th></tr></thead><tbody>
+    <tr><td>문제파악 (5분)</td><td>1 사건 접수</td><td>물수제비 무늬 제시, 예상·이유·질문 저장</td><td>크기가 다른 원을 그리려면 컴퍼스에서 무엇을 바꿔야 할까?</td></tr>
+    <tr><td>원리탐색 (13분)</td><td>2 원 실험실</td><td>실험 A(중심 고정·반지름 변경) → 실험 B(반지름 고정·중심 이동), 비교 결과 확인 후 기록</td><td>반지름을 바꾸면 무엇이, 중심을 옮기면 무엇이 바뀔까?</td></tr>
+    <tr><td>짝 토의 (7분)</td><td>3 탐정 회의 ㉠·㉡·짝 회의</td><td>모양 카드에서 중심·반지름 찾기, 근거 질문 카드, 논쟁</td><td>중심이 같으면 같은 원이라고 할 수 있을까?</td></tr>
+    <tr><td>원리형식화 (7분)</td><td>3 컴퍼스 검증</td><td>탐구지에 컴퍼스로 물수제비 무늬 그리고 자로 재기, 원리 정리</td><td>무엇을 먼저 정하고 그려야 할까?</td></tr>
+    <tr><td>적용·정리 (8분)</td><td>4 탐정 미션 → 5 보고서</td><td>달팽이 집(교과서 ③) 완성, 꽃무늬·보너스는 확장, 보고서 작성·발표</td><td>달팽이 집을 그리려면 중심과 반지름을 어떻게 정해야 할까? / 처음 예상과 달라진 까닭은?</td></tr>
+  </tbody></table>
+  <h3>짝 역할 교대</h3>
+  <ul><li>기기 1대를 짝이 함께 써요. <b>조작자</b>는 화면을 만지고, <b>설명자</b>는 무엇이 바뀌는지 말해요. 실험 A가 끝나면 역할을 바꿔요.</li>
+  <li>탐정 회의에서는 A 30초 설명 → B 근거 질문 → 역할 교대. 타이머는 필요할 때만 눌러 쓰고 자동으로 시작하지 않아요.</li></ul>
+  <h3>앱이 일부러 이렇게 동작해요</h3>
+  <ul><li>예상을 저장해야 2~5화면이 열리고, 실험 A를 저장해야 실험 B가 열려요.</li>
+  <li>조작하기 전에는 규칙이나 정답을 보여 주지 않아요. 원을 직접 조작한 뒤에만 「비교 결과 보기」가 열리고, 기록은 비교 결과를 본 뒤 세 칸을 모두 써야 저장돼요.</li>
+  <li>틀리면 먼저 질문으로 되묻고, 두 번째에 어디를 볼지 짚어 줘요. 별은 조건을 지키고 이유까지 써야 받아요(속도 경쟁 없음).</li>
+  <li>보너스 설명은 「반지름·컴퍼스·벌리다·길이·지름」 같은 낱말이 있는지로만 간단히 판단해요. 낱말만 넣어도 통과할 수 있으니 설명 내용은 선생님이 함께 봐 주세요.</li>
+  <li>화면 길이는 「단위」로 표시해요. 컴퍼스로 그릴 때는 1단위를 1cm로 안내해 주세요.</li></ul>
+  <h3>예상 오개념과 개입</h3>
+  <ul><li>「큰 원을 그리려면 중심도 옮겨야 한다」 → 실험 A에서 중심 잠금 상태로 원이 커지는 것을 확인</li>
+  <li>「반지름이 1 늘면 지름도 1 는다」 → 지름 보기를 켜고 지름이 2씩 느는 것을 확인</li>
+  <li>「중심이 같으면 같은 원」 → 물수제비(동심원)를 반례로 제시</li></ul>
+  <h3>수업 전 점검</h3>
+  <ul><li>이 파일 하나(index.html)를 기기에 저장해 브라우저로 열면 인터넷 없이 모든 기능이 작동해요.</li>
+  <li>학생 이름은 입력하지 않아도 돼요. 기록은 각 기기 브라우저에만 저장되고 외부로 보내지 않아요.</li>
+  <li>공용 태블릿은 수업 후 「처음부터」 버튼으로 초기화해 주세요.</li></ul>
+  <h3>생성형 AI 질문 코치 (선택, 기본 꺼짐)</h3>
+  <p style="margin:4px 0">기본 코치는 인터넷 없이 규칙에 따라 되묻기 질문만 해요. 생성형 AI는 학교 개인정보 처리 기준을 충족하고, 학교가 운영하는 중계 서버(https)가 있을 때만 켜세요. API 키는 이 파일에 넣지 않아요. 보내는 정보는 학생이 쓴 질문과 화면 번호뿐이며, 연결에 실패하면 기본 코치로 돌아가요.</p>
+  <div class="row"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="aiPrivacy"> 학교 개인정보 처리 기준 검토를 마쳤습니다</label></div>
+  <div class="row" style="margin-top:6px"><label for="aiUrl">중계 서버 주소</label><input type="url" id="aiUrl" placeholder="https://..." style="flex:1;min-width:220px"></div>
+  <div class="row" style="margin-top:6px"><button class="btn small" id="aiOn">AI 코치 켜기</button><button class="btn ghost small" id="aiOff">끄기</button><span id="aiState" class="tag"></span></div>
+  <p class="muted" style="font-size:14px">중계 서버는 <code>{"screen":2,"question":"..."}</code>을 POST로 받아 <code>{"reply":"..."}</code>를 돌려주도록 만들어 주세요. 답 대신 되묻기 질문을 하도록 서버에서 지시해야 해요.</p>
+</div></div>
+
+<div id="printSheet"></div>
+
+<script>
+(()=>{
+const U=40, NS='http://www.w3.org/2000/svg';
+const COLORS=['#e8547a','#3d8bfd','#1fae88','#f0a000','#8a6cff','#ff7a3d','#13a8c4'];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const r1=v=>Math.round(v*10)/10, snap=(v,s=0.5)=>Math.round(v/s)*s, dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function el(tag,attrs={},parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs={}){const t=el('text',{x,y,'font-family':'var(--display)','font-weight':700,'font-size':16,'text-anchor':'middle','paint-order':'stroke',stroke:'#fff','stroke-width':4,'stroke-linejoin':'round',fill:'#28364f',...attrs},parent);t.textContent=s;return t;}
+
+function mascot(svg,mood){
+  svg.innerHTML=`<circle cx="50" cy="58" r="34" fill="#ffd25e" stroke="#28364f" stroke-width="3"/>
+  <path d="M18 40 Q50 8 82 40 Z" fill="#8b5e3c" stroke="#28364f" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M14 41 Q50 30 86 41" fill="none" stroke="#28364f" stroke-width="3" stroke-linecap="round"/>
+  <rect x="44" y="18" width="12" height="7" rx="3" fill="#ff6f91"/>
+  <circle cx="38" cy="58" r="5.5" fill="#28364f"/><circle cx="62" cy="58" r="5.5" fill="#28364f"/>
+  <circle cx="40" cy="56" r="1.8" fill="#fff"/><circle cx="64" cy="56" r="1.8" fill="#fff"/>
+  <ellipse cx="29" cy="68" rx="6" ry="3.5" fill="#ff9fb5"/><ellipse cx="71" cy="68" rx="6" ry="3.5" fill="#ff9fb5"/>
+  ${mood==='wow'?'<ellipse cx="50" cy="72" rx="5" ry="6" fill="#28364f"/>':'<path d="M42 70 Q50 78 58 70" fill="none" stroke="#28364f" stroke-width="3" stroke-linecap="round"/>'}
+  <circle cx="80" cy="80" r="11" fill="#e8f6ff" stroke="#28364f" stroke-width="3.5"/>
+  <line x1="88" y1="88" x2="97" y2="97" stroke="#28364f" stroke-width="5" stroke-linecap="round"/>`;
+}
+mascot($('#logoMascot'));mascot($('#coachMascot'));
+
+// ---------------- 상태 ----------------
+const BADGES=[
+  ['expA','물수제비 복원','중심 고정, 반지름 1·2·3'],
+  ['recA','실험 A 기록','변한 것과 변하지 않은 것'],
+  ['expB','포개기 성공','반지름 같으면 크기 같다'],
+  ['recB','실험 B 기록','중심은 위치를 정한다'],
+  ['dquiz','지름 함정 탈출','반지름 +1 → 지름 +2'],
+  ['clue1','반지름 단서','한 원의 반지름은 모두 같다'],
+  ['clue2','지름 단서','지름 = 반지름 × 2'],
+  ['clue3','가장 긴 선분','지름은 가장 긴 선분'],
+  ['cardA','증거물 ㉠ 감정','작은 원의 중심 찾기'],
+  ['cardB','증거물 ㉡ 감정','반지름과 지름의 관계'],
+  ['debate','반례 사냥꾼','중심이 같아도 다른 원'],
+  ['compass','컴퍼스 검증','실제로 그리고 재기'],
+  ['final','원리 정리','크기·위치를 정하는 것'],
+];
+const KEY='circle-detective-v2';
+const LC={x:6,y:4};
+const fresh=()=>({
+  screen:'case',team:'',unlocked:false,
+  pred:{size:'',center:'',why:''},questions:[],badges:{},
+  lab:{sub:'A',show:{c:true,r:true,o:true,d:false},
+    A:{r:1,stamps:[],touched:false,shown:false,rec:{chg:'',same:'',find:''},saved:false,quiz:''},
+    B:{c:{x:9,y:4},touched:false,shown:false,rec:{chg:'',same:'',find:''},saved:false},
+    clue:{which:1,r:2.5,ang:-0.7,a1:2.6,a2:-0.3,rays:false,sawD:false}},
+  meet:{card:'a',sel:'big',found:{a:{},b:{}},measured:{a:{},b:{}},tries:{a:0,b:0},rel:{a:'',b:''},
+    swap:false,claimA:'',claimB:'',ask:-1,asks:[],d1:'',d2:'',conclusion:'',
+    compass:{rows:[{r:'',d:''},{r:'',d:''},{r:'',d:''}],same:'',note:''}},
+  mis:{sub:'snail',tries:{snail:0,flower:0,bonus:0},passed:{snail:false,flower:false,bonus:false},
+    snail:{c:{x:6,y:3.5},r:1,stamps:[],why:''},
+    flower:{sel:0,r:1.5,circles:{},why:''},
+    bonus:{choice:'',why:''}},
+  rep:{p1:'',p2:'',p3:'',p4:'',now:''},
+  ai:{on:false,url:'',privacy:false}
+});
+function merge(base,src){for(const k in src){if(src[k]&&typeof src[k]==='object'&&!Array.isArray(src[k])&&base[k]&&typeof base[k]==='object'&&!Array.isArray(base[k]))merge(base[k],src[k]);else base[k]=src[k];}return base;}
+let S=fresh();
+try{const raw=localStorage.getItem(KEY);if(raw)S=merge(fresh(),JSON.parse(raw));}catch(e){}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}},120);}
+function saveNow(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+window.addEventListener('pagehide',saveNow);
+
+// ---------------- 공통 ----------------
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2300);}
+function award(id){if(S.badges[id])return false;S.badges[id]=true;save();const b=BADGES.find(x=>x[0]===id);toast('배지 획득! ★ '+b[1]);mascot($('#coachMascot'),'wow');setTimeout(()=>mascot($('#coachMascot')),1400);updateCounts();return true;}
+function stars(){return ['snail','flower','bonus'].filter(k=>S.mis.passed[k]).length;}
+function updateCounts(){$('#badgeCount').textContent=Object.keys(S.badges).length;$('#starCount').textContent=stars();updateNav();}
+function chipGroup(box,cur,onPick){box.querySelectorAll('.chip').forEach(c=>{c.classList.remove('right','wrong');c.setAttribute('aria-pressed',c.dataset.v===cur?'true':'false');
+  c.onclick=()=>{box.querySelectorAll('.chip').forEach(x=>{x.setAttribute('aria-pressed','false');x.classList.remove('right','wrong');});c.setAttribute('aria-pressed','true');onPick(c.dataset.v,c);};});}
+function markChip(box,v,ok){box.querySelectorAll('.chip').forEach(c=>c.classList.remove('right','wrong'));const c=box.querySelector(`.chip[data-v="${v}"]`);if(c){c.setAttribute('aria-pressed','false');c.classList.add(ok?'right':'wrong');}}
+function fb(id,cls,msg){const f=typeof id==='string'?$(id):id;if(!f)return;f.className='fb '+cls;f.textContent=msg;}
+
+// ---------------- 질문 코치 ----------------
+const HINTS={
+  case:['물수제비 원들은 어디에서부터 퍼져 나가는 것 같나요?','크기가 다른 원을 컴퍼스로 그린다면 무엇이 달라질까요?','질문을 만들 때는 한 번에 하나만 바꿔 볼까요?'],
+  A:['컴퍼스 침(중심)은 잠겨 있어요. 무엇만 바꾸면 물수제비 무늬가 될까요?','1단위, 2단위, 3단위 원을 모두 찍었나요?','반지름이 1 늘 때 지름은 얼마나 늘었나요? 지름 보기를 켜 볼까요?'],
+  B:['이번엔 반지름이 잠겨 있어요. 원 나의 중심을 옮기면 무엇이 바뀌나요?','두 원의 크기가 같은지 어떻게 확인할 수 있을까요?'],
+  clue:['점 P를 원 위 여러 곳으로 옮겨 볼까요? 반지름 길이가 바뀌나요?','지름 한 개는 반지름 몇 개로 이루어져 있나요?','선분이 원의 중심을 지나게 해 볼까요? 길이가 어떻게 되나요?'],
+  meet:['원 위의 어느 점에서나 거리가 같은 곳은 어디일까요?','작은 원의 중심은 큰 원의 안, 위, 밖 중 어디에 있나요?','작은 원 두 개의 지름을 이어 붙이면 무엇과 길이가 같아질까요?'],
+  talk:['친구에게 “어떤 조건을 같게 두었어?”라고 물어볼까요?','중심이 같은데 크기가 다른 원을 본 적이 있나요?'],
+  compass:['컴퍼스 침을 꽂은 곳은 원의 무엇일까요?','반지름을 1cm씩 늘리려면 컴퍼스를 어떻게 해야 할까요?'],
+  snail:['달팽이 집은 어디에서부터 말려 들어가나요?','컴퍼스 침은 그대로 두고 조금씩 더 벌리면 어떻게 될까요?','가장 큰 원이 달팽이 몸에 닿지 않으려면 반지름을 얼마까지 할 수 있을까요?'],
+  flower:['꽃잎 원들의 크기가 같으려면 무엇이 같아야 할까요?','반지름을 다시 비교해 볼까요?','반지름을 가운데에서 중심점까지의 거리와 같게 하면 어떤 무늬가 될까요?'],
+  bonus:['원의 크기를 결정하는 길이는 무엇일까요?'],
+  report:['처음 예상과 달라진 생각이 있나요?','원의 크기를 정하는 것과 위치를 정하는 것은 각각 무엇인가요?'],
+};
+let hintKey='case',hintIdx=0;
+function setCoach(key,msg){if(key!==hintKey){hintKey=key;hintIdx=0;}$('#coachMsg').textContent=msg||HINTS[key][0];}
+function say(msg){$('#coachMsg').textContent=msg;$('#coach').classList.remove('min');}
+$('#hintBtn').onclick=()=>{const h=HINTS[hintKey];hintIdx=(hintIdx+1)%h.length;say(h[hintIdx]);};
+$('#coachMin').onclick=()=>$('#coach').classList.add('min');
+$('#coachMascot').onclick=()=>$('#coach').classList.toggle('min');
+$('#coachMascot').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('#coach').classList.toggle('min');}};
+function ruleCoach(q){
+  const R=[[/지름/,'지름은 원의 중심을 지나요. 지름 한 개 안에 반지름이 몇 개 들어 있을까요?'],
+    [/반지름|벌/,'반지름을 바꾸면 원의 무엇이 달라지는지 실험 A에서 확인해 볼까요?'],
+    [/중심|침/,'중심을 옮겼을 때 원의 크기가 바뀌었나요, 위치가 바뀌었나요?'],
+    [/크기|크게|작게|커/,'원의 크기를 결정하는 길이는 무엇일까요?'],
+    [/위치|옮/,'원을 다른 자리에 그리려면 컴퍼스 침을 어디에 꽂아야 할까요?'],
+    [/컴퍼스/,'컴퍼스 침과 벌린 길이는 각각 원의 무엇과 같을까요?'],
+    [/답|정답|알려/,'정답 대신 질문을 줄게요. 한 번에 하나만 바꿔 보면 무엇을 알 수 있을까요?']];
+  for(const [re,m] of R) if(re.test(q)) return m;
+  return '좋은 질문이에요! 그 생각을 확인하려면 무엇을 바꾸고 무엇을 그대로 두어야 할까요?';
+}
+const SCREEN_NO={case:1,lab:2,meet:3,mission:4,report:5};
+async function askCoach(){
+  const q=$('#coachIn').value.trim();if(!q)return;$('#coachIn').value='';
+  const A=S.ai;
+  if(A.on&&A.privacy&&/^https:\/\//.test(A.url)){
+    say('생각하는 중…');
+    try{const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),6000);
+      const res=await fetch(A.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({screen:SCREEN_NO[S.screen],question:q}),signal:ctl.signal});
+      clearTimeout(t);const j=await res.json();if(!j||!j.reply)throw 0;say(String(j.reply).slice(0,300));return;
+    }catch(e){say(ruleCoach(q)+' (AI 연결이 안 되어 기본 코치가 답했어요)');return;}
+  }
+  say(ruleCoach(q));
+}
+$('#coachAsk').onclick=askCoach;$('#coachIn').onkeydown=e=>{if(e.key==='Enter')askCoach();};
+function aiState(){const A=S.ai,on=A.on&&A.privacy&&/^https:\/\//.test(A.url);$('#coachMode').textContent=on?'AI 코치':'질문 코치';$('#aiState').textContent=on?'켜짐':'꺼짐 (기본 질문 코치 사용 중)';$('#aiPrivacy').checked=A.privacy;$('#aiUrl').value=A.url;}
+$('#aiOn').onclick=()=>{const p=$('#aiPrivacy').checked,u=$('#aiUrl').value.trim();
+  if(!p){toast('개인정보 처리 기준 검토를 먼저 확인해 주세요');return;}
+  if(!/^https:\/\//.test(u)){toast('https로 시작하는 중계 서버 주소가 필요해요');return;}
+  S.ai={on:true,url:u,privacy:true};save();aiState();toast('AI 코치를 켰어요');};
+$('#aiOff').onclick=()=>{S.ai.on=false;save();aiState();};
+
+// ---------------- 그리기 판 ----------------
+class Board{
+  constructor(svg,w,h){this.svg=svg;this.w=w;this.h=h;svg.setAttribute('viewBox',`0 0 ${w*U} ${h*U}`);
+    this.L={};['grid','deco','target','stamps','guide','live','handles'].forEach(n=>this.L[n]=el('g',{},svg));
+    this.drawGrid();this.handles=[];this.drag=null;this.onTap=null;
+    svg.addEventListener('pointerdown',e=>{const p=this.pt(e);let best=null,bd=0.6;
+      for(const h of this.handles){const d=dist(p,h.pos());if(d<bd){bd=d;best=h;}}
+      if(best){if(best.locked){best.locked();return;}this.drag=best;try{svg.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();}
+      else if(this.onTap)this.onTap(p);});
+    svg.addEventListener('pointermove',e=>{if(this.drag){e.preventDefault();this.drag.move(this.pt(e));}});
+    const end=()=>{if(this.drag){const d=this.drag;this.drag=null;d.end&&d.end();}};
+    svg.addEventListener('pointerup',end);svg.addEventListener('pointercancel',end);}
+  pt(e){const p=this.svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(this.svg.getScreenCTM().inverse());return{x:q.x/U,y:q.y/U};}
+  drawGrid(){const g=this.L.grid;
+    for(let x=0;x<=this.w;x+=0.5)el('line',{x1:x*U,y1:0,x2:x*U,y2:this.h*U,stroke:x%1?'#eef4fb':'#d3e3f6','stroke-width':x%1?1:1.4},g);
+    for(let y=0;y<=this.h;y+=0.5)el('line',{x1:0,y1:y*U,x2:this.w*U,y2:y*U,stroke:y%1?'#eef4fb':'#d3e3f6','stroke-width':y%1?1:1.4},g);
+    el('line',{x1:U*0.5,y1:this.h*U-10,x2:U*1.5,y2:this.h*U-10,stroke:'#5d6b85','stroke-width':3},g);
+    txt(g,U,this.h*U-16,'1단위',{'font-size':13,fill:'#5d6b85'});}
+  clear(...n){(n.length?n:['deco','target','stamps','guide','live','handles']).forEach(k=>this.L[k].innerHTML='');}
+  circle(l,c,r,a={}){return el('circle',{cx:c.x*U,cy:c.y*U,r:r*U,fill:'none',stroke:'#28364f','stroke-width':3,...a},this.L[l]);}
+  dot(l,p,a={}){return el('circle',{cx:p.x*U,cy:p.y*U,r:6,fill:'#c2410c',stroke:'#fff','stroke-width':2,...a},this.L[l]);}
+  seg(l,a,b,at={}){return el('line',{x1:a.x*U,y1:a.y*U,x2:b.x*U,y2:b.y*U,stroke:'#28364f','stroke-width':3,'stroke-linecap':'round',...at},this.L[l]);}
+  label(l,p,s,a={}){return txt(this.L[l],p.x*U,p.y*U,s,a);}
+  inB(p,pad=0.5){return{x:Math.min(this.w-pad,Math.max(pad,p.x)),y:Math.min(this.h-pad,Math.max(pad,p.y))};}
+}
+function radiusLine(b,l,c,r,ang,col,lab=true){const p={x:c.x+r*Math.cos(ang),y:c.y+r*Math.sin(ang)};b.seg(l,c,p,{stroke:col,'stroke-width':3.5});
+  if(lab)b.label(l,{x:(c.x+p.x)/2,y:(c.y+p.y)/2-0.22},`반지름 ${r1(r)}`,{fill:col,'font-size':15});return p;}
+function diamLine(b,l,c,r,col='#8a6cff'){b.seg(l,{x:c.x-r,y:c.y},{x:c.x+r,y:c.y},{stroke:col,'stroke-width':3,'stroke-dasharray':'8 6'});b.label(l,{x:c.x,y:c.y+0.55},`지름 ${r1(2*r)}`,{fill:col,'font-size':15});}
+function pinIcon(b,c,label){b.dot('live',c,{r:9,fill:'#28364f'});const g=b.L.live;el('rect',{x:c.x*U-9,y:c.y*U-30,width:18,height:14,rx:3,fill:'#f0b429',stroke:'#7a4d00','stroke-width':2},g);
+  el('path',{d:`M${c.x*U-5} ${c.y*U-30} v-5 a5 5 0 0 1 10 0 v5`,fill:'none',stroke:'#7a4d00','stroke-width':2.5},g);if(label)b.label('live',{x:c.x,y:c.y+0.75},label,{'font-size':13});}
+
+// ---------------- 화면 전환과 잠금 ----------------
+const screens=['case','lab','meet','mission','report'];
+function go(name){
+  if(name!=='case'&&!S.unlocked){toast('먼저 1화면에서 예상을 저장해 주세요');name='case';}
+  S.screen=name;save();
+  screens.forEach(s=>$('#s-'+s).classList.toggle('on',s===name));
+  $$('nav.steps button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===name?'true':'false'));
+  ({case:renderCase,lab:renderLab,meet:renderMeet,mission:renderMis,report:renderReport})[name]();
+  updateNav();window.scrollTo({top:0});
+}
+$$('nav.steps button').forEach(b=>b.onclick=()=>go(b.dataset.go));
+function updateNav(){const B=S.badges;
+  const done={case:S.unlocked,lab:S.lab.A.saved&&S.lab.B.saved,meet:B.cardA&&B.cardB&&!!S.meet.conclusion.trim(),mission:S.mis.passed.snail,report:!!B.final};
+  $$('nav.steps button').forEach(b=>{const k=b.dataset.go;b.classList.toggle('done',!!done[k]);b.setAttribute('aria-disabled',k!=='case'&&!S.unlocked?'true':'false');
+    b.querySelector('.n').textContent=done[k]?'✔':(k!=='case'&&!S.unlocked?'잠':screens.indexOf(k)+1);});}
+
+// ================= 1. 사건 접수 =================
+(function pond(){const svg=$('#pondSvg');
+  svg.innerHTML=`<defs><radialGradient id="water" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#c6ecff"/><stop offset="1" stop-color="#80c9f0"/></radialGradient></defs>
+  <rect width="480" height="280" rx="14" fill="#cdeebd"/><ellipse cx="240" cy="140" rx="215" ry="125" fill="url(#water)"/>
+  <ellipse cx="62" cy="40" rx="22" ry="12" fill="#9bd57a"/><ellipse cx="430" cy="245" rx="26" ry="13" fill="#9bd57a"/>
+  <ellipse cx="410" cy="60" rx="20" ry="10" fill="#7fc65f"/><g id="ripples"></g>
+  <ellipse cx="96" cy="212" rx="16" ry="9" fill="#9aa6b8"/><ellipse cx="128" cy="224" rx="12" ry="7" fill="#b6bfcc"/>`;
+  const g=svg.querySelector('#ripples');
+  [1,2,3].forEach((u,i)=>{el('circle',{cx:240,cy:140,r:u*U,fill:'none',stroke:'#e8547a','stroke-width':3},g);
+    const a=el('circle',{cx:240,cy:140,r:u*U,fill:'none',stroke:'#fff','stroke-width':2,opacity:.8},g);
+    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){el('animate',{attributeName:'r',values:`${u*U-5};${u*U+5};${u*U-5}`,dur:'3s',begin:`${i*.4}s`,repeatCount:'indefinite'},a);
+    el('animate',{attributeName:'opacity',values:'.9;.1;.9',dur:'3s',begin:`${i*.4}s`,repeatCount:'indefinite'},a);}});
+  txt(svg,240,26,'원은 몇 개? 중심은 어디? 크기는 왜 다를까?',{'font-size':17});
+})();
+function renderCase(){
+  setCoach('case');
+  chipGroup($('#predSize'),S.pred.size,v=>{S.pred.size=v;save();});
+  chipGroup($('#predCenter'),S.pred.center,v=>{S.pred.center=v;save();});
+  $('#predWhy').value=S.pred.why;$('#predWhy').oninput=e=>{S.pred.why=e.target.value;save();};
+  renderQ();
+  if(S.unlocked)fb('#predFb','ok','예상을 저장했어요. 바꾸고 싶으면 고친 뒤 다시 저장해도 돼요.');
+}
+function renderQ(){const box=$('#qList');box.innerHTML='';
+  S.questions.forEach((q,i)=>{const d=document.createElement('div');d.className='qitem';
+    d.innerHTML=`<span class="tag ${['pink','blue','mint'][i%3]}">Q${i+1}</span><span>${esc(q.text)}</span><button class="x">지우기</button>`;
+    d.querySelector('.x').onclick=()=>{S.questions.splice(i,1);save();renderQ();};box.appendChild(d);});}
+$('#addQ').onclick=()=>{const a=$('#qa').value,b=$('#qb').value,d=$('#qd').value;
+  if(!a||!b||!d){fb('#qFb','no','빈칸 ___을 모두 골라 질문을 완성해 볼까요?');return;}
+  const text=`만약 ${a}을(를) ${b} ${d} 어떻게 될까?`;
+  if(S.questions.some(q=>q.text===text)){fb('#qFb','no','이미 붙인 질문이에요. 다른 조건을 바꿔 볼까요?');return;}
+  S.questions.push({text,solved:false});save();renderQ();fb('#qFb','ok','질문을 붙였어요! 실험으로 확인할 수 있을까요?');
+  $('#qa').value=$('#qb').value=$('#qd').value='';};
+$('#savePred').onclick=()=>{const miss=[];
+  if(!S.pred.size)miss.push('① 예상');if(!S.pred.center)miss.push('② 중심 예상');if(!S.pred.why.trim())miss.push('③ 이유');if(!S.questions.length)miss.push('탐정 질문');
+  if(miss.length){fb('#predFb','no',`${miss.join(', ')}이(가) 비어 있어요. 채운 뒤 다시 저장해요.`);return;}
+  const first=!S.unlocked;S.unlocked=true;saveNow();updateNav();
+  if(first){toast('예상 저장! 실험실이 열렸어요');go('lab');}else fb('#predFb','ok','예상을 다시 저장했어요.');};
+$('#teamName').value=S.team;$('#teamName').oninput=e=>{S.team=e.target.value;save();};
+
+// ================= 2. 원 실험실 =================
+const lab=new Board($('#labSvg'),12,8);
+function renderLab(){const L=S.lab;
+  if(L.sub==='B'&&!L.A.saved)L.sub='A';
+  $$('#labTabs button').forEach(b=>{const k=b.dataset.sub;b.setAttribute('aria-current',k===L.sub?'true':'false');
+    const lock=k==='B'&&!L.A.saved;b.setAttribute('aria-disabled',lock?'true':'false');
+    const ok={A:L.A.saved,B:L.B.saved,clue:S.badges.clue1&&S.badges.clue2&&S.badges.clue3}[k];
+    b.textContent={A:'실험 A: 중심 고정',B:'실험 B: 반지름 고정',clue:'단서 수집: 원의 성질'}[k]+(ok?' ✔':lock?' (잠김)':'');});
+  setCoach(L.sub);$('#labSide').dataset.mode='';
+  ({A:drawA,B:drawB,clue:drawClue})[L.sub]();
+}
+$$('#labTabs button').forEach(b=>b.onclick=()=>{if(b.dataset.sub==='B'&&!S.lab.A.saved){toast('실험 A 기록을 저장하면 실험 B가 열려요');say('실험 A에서 비교 결과를 보고 세 칸을 모두 쓰면 실험 B가 열려요.');return;}S.lab.sub=b.dataset.sub;save();renderLab();});
+function showToggles(){const s=S.lab.show;return `<div class="toggles" role="group" aria-label="보이기 설정">
+  <label><input type="checkbox" data-t="c" ${s.c?'checked':''}>중심 점</label><label><input type="checkbox" data-t="r" ${s.r?'checked':''}>반지름 선분</label>
+  <label><input type="checkbox" data-t="o" ${s.o?'checked':''}>원 외곽선</label><label><input type="checkbox" data-t="d" ${s.d?'checked':''}>지름</label></div>`;}
+function wireToggles(redraw){$$('#labSide [data-t]').forEach(c=>c.onchange=()=>{S.lab.show[c.dataset.t]=c.checked;save();redraw();});}
+function locks(center,radius){return `<div class="row" style="gap:6px"><span class="lock ${center?'on':'off'}">중심 ${center?'잠금':'움직임'}</span><span class="lock ${radius?'on':'off'}">반지름 ${radius?'잠금':'바꿈'}</span></div>`;}
+function recordHTML(X,id){return `<div class="card" id="${id}Rec" style="${X.shown?'':'opacity:.55'}"><h3>탐정 기록 ${id}</h3>
+  ${X.shown?'':'<p class="muted" style="margin:0">비교 결과를 본 뒤에 쓸 수 있어요.</p>'}
+  <label class="q" for="${id}chg">변한 것</label><textarea id="${id}chg" ${X.shown?'':'disabled'}>${esc(X.rec.chg)}</textarea>
+  <label class="q" for="${id}same">변하지 않은 것</label><textarea id="${id}same" ${X.shown?'':'disabled'}>${esc(X.rec.same)}</textarea>
+  <label class="q" for="${id}find">발견한 점과 이유</label><textarea id="${id}find" ${X.shown?'':'disabled'} placeholder="○○를 바꾸었더니 ○○가 달라졌다. 왜냐하면…">${esc(X.rec.find)}</textarea>
+  <div class="row" style="margin-top:8px"><button class="btn mint" id="${id}save" ${X.shown?'':'disabled'}>기록 저장</button></div><div class="fb" id="${id}recFb"></div></div>`;}
+function wireRecord(X,id,onSaved){if(!X.shown)return;['chg','same','find'].forEach(k=>$('#'+id+k).oninput=e=>{X.rec[k]=e.target.value;save();});
+  $('#'+id+'save').onclick=()=>{const miss=[['chg','변한 것'],['same','변하지 않은 것'],['find','발견한 점과 이유']].filter(([k])=>!X.rec[k].trim()).map(x=>x[1]);
+    if(miss.length){fb('#'+id+'recFb','no',`${miss.join(', ')} 칸이 비어 있어요.`);return;}
+    if(X.rec.find.trim().length<8){fb('#'+id+'recFb','no','발견한 점에 “왜냐하면”을 넣어 이유를 조금 더 써 볼까요?');return;}
+    X.saved=true;saveNow();fb('#'+id+'recFb','ok','기록을 저장했어요.');onSaved();};
+  if(X.saved)fb('#'+id+'recFb','ok','저장된 기록이에요. 고친 뒤 다시 저장할 수 있어요.');}
+
+// --- 실험 A: 중심 고정 + 반지름 변경 ---
+function drawA(){const A=S.lab.A,sh=S.lab.show;
+  lab.clear();lab.onTap=()=>say('실험 A에서는 중심이 잠겨 있어요. 반지름만 바꿔 볼까요?');
+  A.stamps.forEach((s,i)=>{const col=COLORS[i%7];if(sh.o)lab.circle('stamps',LC,s.r,{stroke:col,'stroke-width':3.5});else lab.circle('stamps',LC,s.r,{stroke:col,'stroke-width':1.5,'stroke-dasharray':'2 6'});});
+  if(sh.o)lab.circle('live',LC,A.r,{stroke:'#28364f','stroke-width':3,'stroke-dasharray':'7 6'});
+  if(sh.r)radiusLine(lab,'live',LC,A.r,-0.9,'#c23c61');if(sh.d)diamLine(lab,'live',LC,A.r);
+  pinIcon(lab,LC,sh.c?'중심(잠금)':'');
+  lab.handles=[{pos:()=>LC,locked:()=>{toast('중심이 잠겨 있어요');say('실험 A의 조건은 「중심 고정」이에요. 반지름 슬라이더로 원을 바꿔 볼까요?');}}];
+  $('#labReadout').innerHTML=`<span class="tag">중심 <b>(${LC.x}, ${LC.y})</b></span><span class="tag pink">반지름 <b>${A.r}</b>단위</span>${sh.d?`<span class="tag blue">지름 <b>${2*A.r}</b>단위</span>`:''}<span class="tag mint">찍은 원 <b>${A.stamps.length}</b>개</span>`;
+  if($('#labSide').dataset.mode!=='A'){$('#labSide').dataset.mode='A';buildASide();}else updateA();}
+function buildASide(){const A=S.lab.A,side=$('#labSide');
+  side.innerHTML=`<div class="card"><h2>실험 A. 중심 고정 + 반지름 바꾸기</h2>${locks(true,false)}
+    <p style="margin:8px 0 0">물수제비 무늬를 되살려요. 반지름을 바꾸며 <b>원 찍기</b>를 눌러 원을 여러 개 그려요.</p>
+    <div class="slider"><label for="aR">반지름</label><input id="aR" type="range" min="1" max="4" step="0.5" value="${A.r}"><span class="val" id="aRv">${A.r}단위</span></div>
+    <div class="row"><button class="btn pink" id="aStamp">원 찍기</button><button class="btn ghost" id="aUndo">하나 지우기</button><button class="btn ghost" id="aReset">원 초기화</button></div>
+    <div style="margin-top:8px">${showToggles()}</div>
+    <ul class="checks" id="aChecks"></ul>
+    <div class="row" style="margin-top:6px"><button class="btn" id="aShow">비교 결과 보기</button></div><div class="fb" id="aFb"></div></div>
+    <div class="card" id="aResult" style="display:none"></div>
+    ${recordHTML(A,'A')}
+    <div class="card" id="aQuiz" style="display:${A.saved?'block':'none'}"><h3>함정 질문</h3><label class="q">반지름이 1단위 늘면 지름은 몇 단위 늘어날까?</label>
+    <div class="chips" id="dQuiz"><button class="chip" data-v="1">1단위</button><button class="chip" data-v="2">2단위</button><button class="chip" data-v="3">3단위</button></div><div class="fb" id="dFb"></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="toB">실험 B로 가기</button></div></div>`;
+  $('#aR').oninput=e=>{A.r=+e.target.value;A.touched=true;$('#aRv').textContent=A.r+'단위';save();drawA();};
+  $('#aStamp').onclick=()=>{if(A.stamps.some(s=>s.r===A.r)){toast(`반지름 ${A.r}단위 원은 이미 있어요`);return;}A.stamps.push({r:A.r});A.touched=true;save();drawA();};
+  $('#aUndo').onclick=()=>{A.stamps.pop();save();drawA();};
+  $('#aReset').onclick=()=>{A.stamps=[];A.r=1;$('#aR').value=1;$('#aRv').textContent='1단위';save();drawA();};
+  wireToggles(drawA);
+  $('#aShow').onclick=()=>{const rs=new Set(A.stamps.map(s=>s.r));
+    if(!A.touched||rs.size<2){fb('#aFb','no','반지름을 바꾸어 크기가 다른 원을 2개 이상 찍은 뒤에 비교할 수 있어요.');return;}
+    A.shown=true;saveNow();$('#labSide').dataset.mode='';drawA();};
+  wireRecord(A,'A',()=>{award('recA');$('#aQuiz').style.display='block';renderLabTabsOnly();updateNav();});
+  chipGroup($('#dQuiz'),'',v=>{const ok=v==='2';markChip($('#dQuiz'),v,ok);
+    fb('#dFb',ok?'ok':'no',ok?'정확해요! 지름은 반지름의 2배라서 반지름이 1 늘면 지름은 2 늘어요.':'지름 보기를 켜고 반지름 1과 2인 원의 지름을 비교해 볼까요?');if(ok)award('dquiz');});
+  $('#toB').onclick=()=>{S.lab.sub='B';save();renderLab();};
+  updateA();}
+function updateA(){const A=S.lab.A,rs=A.stamps.map(s=>s.r);
+  const c=[[rs.includes(1),'반지름 1단위 원'],[rs.includes(2),'반지름 2단위 원'],[rs.includes(3),'반지름 3단위 원']];
+  $('#aChecks').innerHTML='<li class="muted" style="font-size:15px">물수제비 무늬 되살리기</li>'+c.map(([ok,t])=>`<li class="${ok?'ok':''}"><span class="b">${ok?'완료':'아직'}</span>${t}</li>`).join('');
+  if(c.every(x=>x[0]))award('expA');
+  const box=$('#aResult');
+  if(A.shown){const st=[...A.stamps].sort((a,b)=>a.r-b.r);box.style.display='block';
+    box.innerHTML=`<h3>비교 결과</h3><div class="tablebox"><table class="rec"><thead><tr><th>원</th><th>중심</th><th>반지름</th><th>지름</th></tr></thead><tbody>
+    ${st.map((s,i)=>`<tr><td>${i===0?'처음(가장 작은 원)':i+1+'번째'}</td><td>(${LC.x}, ${LC.y})</td><td>${s.r}</td><td>${2*s.r}</td></tr>`).join('')}</tbody></table></div>
+    <p style="margin:8px 0 0">찍은 원 ${st.length}개를 비교해요. <b>중심</b> 칸과 <b>반지름</b> 칸을 위아래로 견주어 보세요. 어느 칸이 같고, 어느 칸이 달라졌나요?</p>`;}}
+function renderLabTabsOnly(){const L=S.lab;$$('#labTabs button').forEach(b=>{const k=b.dataset.sub,lock=k==='B'&&!L.A.saved;b.setAttribute('aria-disabled',lock?'true':'false');
+  const ok={A:L.A.saved,B:L.B.saved,clue:S.badges.clue1&&S.badges.clue2&&S.badges.clue3}[k];b.textContent={A:'실험 A: 중심 고정',B:'실험 B: 반지름 고정',clue:'단서 수집: 원의 성질'}[k]+(ok?' ✔':lock?' (잠김)':'');});}
+
+// --- 실험 B: 반지름 고정 + 중심 이동 ---
+const BR=2, GA={x:3,y:4};
+function drawB(anim){const B=S.lab.B,sh=S.lab.show,cN=anim||B.c;
+  lab.clear();
+  const drawC=(c,col,name,dash)=>{if(sh.o)lab.circle('stamps',c,BR,{stroke:col,'stroke-width':4,...(dash?{'stroke-dasharray':'9 6'}:{})});
+    if(sh.c)lab.dot('stamps',c,{fill:col,r:6});if(sh.r)radiusLine(lab,'stamps',c,BR,-1.2,col);if(sh.d)diamLine(lab,'stamps',c,BR,col);
+    lab.label('stamps',{x:c.x,y:c.y-BR-0.25},name,{fill:col,'font-size':18});};
+  drawC(GA,'#3d8bfd','원 가 (그대로)');drawC(cN,'#e8547a','원 나',!!anim);
+  if(!anim){lab.dot('handles',cN,{r:12,fill:'#e8547a'});
+    lab.handles=[{pos:()=>B.c,move:p=>{B.c=lab.inB({x:snap(p.x),y:snap(p.y)},0.5);B.touched=B.touched||dist(B.c,{x:9,y:4})>=1;drawB();},end:save}];
+    lab.onTap=p=>{B.c=lab.inB({x:snap(p.x),y:snap(p.y)},0.5);B.touched=B.touched||dist(B.c,{x:9,y:4})>=1;save();drawB();};}
+  $('#labReadout').innerHTML=`<span class="tag blue">원 가 중심 <b>(${GA.x}, ${GA.y})</b></span><span class="tag pink">원 나 중심 <b>(${r1(cN.x)}, ${r1(cN.y)})</b></span><span class="tag">반지름 <b>잠금</b></span>`;
+  if(anim)return;
+  if($('#labSide').dataset.mode!=='B'){$('#labSide').dataset.mode='B';buildBSide();}}
+function buildBSide(){const B=S.lab.B,side=$('#labSide');
+  side.innerHTML=`<div class="card"><h2>실험 B. 반지름 고정 + 중심 옮기기</h2>${locks(false,true)}
+    <p style="margin:8px 0 0">분홍 점(원 나의 중심)을 손가락으로 끌거나 판을 눌러 옮겨 봐요. 원 가는 그대로 있어요.</p>
+    <div class="slider"><label for="bR">반지름</label><input id="bR" type="range" min="1" max="4" step="0.5" value="${BR}" disabled><span class="val">잠금</span></div>
+    <div style="margin-top:4px">${showToggles()}</div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="bShow">비교 결과 보기</button><button class="btn ghost" id="bReset">원 초기화</button></div>
+    <div class="fb" id="bFb"></div></div>
+    <div class="card" id="bResult" style="display:none"></div>
+    ${recordHTML(B,'B')}`;
+  $('#bR').parentElement.onclick=()=>say('실험 B의 조건은 「반지름 고정」이에요. 중심을 옮기면 무엇이 바뀌는지 봐요.');
+  wireToggles(()=>drawB());
+  $('#bReset').onclick=()=>{B.c={x:9,y:4};save();drawB();};
+  $('#bShow').onclick=()=>{if(!B.touched){fb('#bFb','no','원 나의 중심을 1칸 이상 옮겨 본 뒤에 비교할 수 있어요.');return;}B.shown=true;saveNow();$('#labSide').dataset.mode='';drawB();};
+  wireRecord(B,'B',()=>{award('recB');renderLabTabsOnly();updateNav();});
+  if(B.shown){const box=$('#bResult');box.style.display='block';
+    box.innerHTML=`<h3>비교 결과</h3><div class="tablebox"><table class="rec"><thead><tr><th></th><th>중심</th><th>반지름</th><th>지름</th></tr></thead><tbody>
+      <tr><td>원 가</td><td>(${GA.x}, ${GA.y})</td><td>${BR}</td><td>${2*BR}</td></tr><tr><td>원 나</td><td>(${B.c.x}, ${B.c.y})</td><td>${BR}</td><td>${2*BR}</td></tr></tbody></table></div>
+      <p style="margin:8px 0">두 원의 반지름이 같아요. 그러면 크기도 같을까요? <b>모형 겹쳐보기</b>로 확인해요.</p>
+      <div class="row"><button class="btn mint" id="bOverlay">모형 겹쳐보기</button></div><div class="fb" id="bOvFb"></div>`;
+    $('#bOverlay').onclick=()=>{const s={...B.c},t0=performance.now(),dur=matchMedia('(prefers-reduced-motion: reduce)').matches?1:1000;
+      const step=now=>{const k=Math.min(1,(now-t0)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;drawB({x:s.x+(GA.x-s.x)*e,y:s.y+(GA.y-s.y)*e});
+        if(k<1)requestAnimationFrame(step);else{fb('#bOvFb','ok','두 원이 딱 겹쳐요! 반지름이 같으면 중심이 달라도 크기가 같아요. 중심을 옮기면 위치만 바뀌어요.');award('expB');setTimeout(()=>drawB(),1800);}};
+      requestAnimationFrame(step);};}
+}
+
+// --- 단서 수집 ---
+function drawClue(){const C=S.lab.clue;lab.clear();lab.handles=[];lab.onTap=null;
+  lab.circle('live',LC,C.r,{stroke:'#3d8bfd','stroke-width':4,fill:'#3d8bfd','fill-opacity':.06});lab.dot('live',LC,{fill:'#28364f'});lab.label('live',{x:LC.x+.35,y:LC.y+.55},'ㅇ',{'font-size':15});
+  let read='';
+  if(C.which===1){if(C.rays)for(let k=0;k<8;k++)radiusLine(lab,'guide',LC,C.r,k*Math.PI/4+.2,'#c3cfe0',false);
+    const P=radiusLine(lab,'live',LC,C.r,C.ang,'#c23c61');lab.dot('handles',P,{r:11,fill:'#e8547a'});lab.label('handles',{x:P.x+.4,y:P.y-.3},'P',{fill:'#c23c61'});
+    lab.handles=[{pos:()=>({x:LC.x+C.r*Math.cos(C.ang),y:LC.y+C.r*Math.sin(C.ang)}),move:p=>{C.ang=Math.atan2(p.y-LC.y,p.x-LC.x);drawClue();},end:save}];
+    read=`<span class="tag pink">반지름(ㅇ에서 P까지) <b>${r1(C.r)}</b>단위</span>`;}
+  if(C.which===2){diamLine(lab,'live',LC,C.r);radiusLine(lab,'live',LC,C.r,-Math.PI/2,'#c23c61');read=`<span class="tag pink">반지름 <b>${r1(C.r)}</b></span><span class="tag blue">지름 <b>${r1(2*C.r)}</b></span>`;}
+  if(C.which===3){const A={x:LC.x+C.r*Math.cos(C.a1),y:LC.y+C.r*Math.sin(C.a1)},Bp={x:LC.x+C.r*Math.cos(C.a2),y:LC.y+C.r*Math.sin(C.a2)},len=dist(A,Bp),isD=Math.abs(len-2*C.r)<.06;
+    lab.seg('live',A,Bp,{stroke:isD?'#1fae88':'#f0a000','stroke-width':5});lab.label('live',{x:(A.x+Bp.x)/2,y:(A.y+Bp.y)/2-.3},`${r1(len)}`,{fill:isD?'#0d6e50':'#8a5a00','font-size':18});
+    [A,Bp].forEach((p,i)=>{lab.dot('handles',p,{r:11,fill:'#f0a000'});lab.label('handles',{x:p.x+(p.x<LC.x?-.45:.45),y:p.y},i?'ㄴ':'ㄱ');});
+    const mk=key=>({pos:()=>({x:LC.x+C.r*Math.cos(C[key]),y:LC.y+C.r*Math.sin(C[key])}),move:p=>{C[key]=Math.atan2(p.y-LC.y,p.x-LC.x);drawClue();},end:save});
+    lab.handles=[mk('a1'),mk('a2')];if(isD)C.sawD=true;
+    read=`<span class="tag ${isD?'mint':'blue'}">선분 ㄱㄴ <b>${r1(len)}</b>단위 ${isD?'· 중심을 지나요':''}</span><span class="tag">반지름 <b>${r1(C.r)}</b></span>`;}
+  $('#labReadout').innerHTML=read;
+  if($('#labSide').dataset.mode!=='clue'+C.which){$('#labSide').dataset.mode='clue'+C.which;buildClueSide();}}
+function buildClueSide(){const C=S.lab.clue,side=$('#labSide');
+  const tabs=`<div class="chips">${[1,2,3].map(i=>`<button class="chip" data-w="${i}" aria-pressed="${C.which===i}">단서 ${i}${S.badges['clue'+i]?' (완료)':''}</button>`).join('')}</div>`;
+  const sl=`<div class="slider"><label for="clueR">반지름</label><input id="clueR" type="range" min="1" max="3.5" step="0.5" value="${C.r}"><span class="val" id="clueRv">${C.r}단위</span></div>`;
+  let body='';
+  if(C.which===1)body=`<h2>단서 1. 한 원의 반지름</h2><p class="muted" style="margin:0">점 P를 끌어 원 위 여러 곳으로 옮겨 보세요.</p>
+    <div class="row" style="margin:8px 0"><button class="btn ghost" id="rays">반지름 8개 긋기</button></div>
+    <label class="q">한 원에서 반지름의 길이는?</label><div class="chips" id="c1q"><button class="chip" data-v="same">모두 같다</button><button class="chip" data-v="diff">위치마다 다르다</button></div><div class="fb" id="c1fb"></div>`;
+  if(C.which===2)body=`<h2>단서 2. 지름과 반지름</h2><p class="muted" style="margin:0">반지름을 바꾸며 지름이 어떻게 변하는지 보세요.</p>
+    <label class="q" for="c2in">반지름이 3단위인 원의 지름은?</label><div class="row"><input id="c2in" type="number" min="0" max="20" style="width:90px"> 단위 <button class="btn" id="c2ok">확인</button></div><div class="fb" id="c2fb"></div>`;
+  if(C.which===3)body=`<h2>단서 3. 원 안의 가장 긴 선분</h2><p class="muted" style="margin:0">노란 점 ㄱ, ㄴ을 원 위에서 움직여 선분을 가장 길게 만들어 보세요.</p>
+    <label class="q">가장 긴 선분은 어떤 선분일까요?</label><div class="chips col" id="c3q"><button class="chip" data-v="d">원의 중심을 지나는 선분(지름)</button><button class="chip" data-v="r">반지름</button><button class="chip" data-v="any">아무 선분이나 같다</button></div><div class="fb" id="c3fb"></div>`;
+  side.innerHTML=`<div class="card"><p class="muted" style="margin:0 0 6px">지난 시간에 배운 원의 성질을 단서로 확인해요. (선택 활동)</p>${tabs}${sl}</div><div class="card">${body}</div>`;
+  side.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{C.which=+b.dataset.w;save();drawClue();});
+  $('#clueR').oninput=e=>{C.r=+e.target.value;$('#clueRv').textContent=C.r+'단위';drawClue();save();};
+  if(C.which===1){$('#rays').onclick=()=>{C.rays=!C.rays;drawClue();};
+    chipGroup($('#c1q'),'',v=>{const ok=v==='same';markChip($('#c1q'),v,ok);fb('#c1fb',ok?'ok':'no',ok?'맞아요! 중심에서 원 위의 어느 점까지 거리는 모두 같아요.':'점 P를 여러 곳으로 옮기며 길이를 다시 살펴볼까요?');if(ok){award('clue1');renderLabTabsOnly();}});}
+  if(C.which===2)$('#c2ok').onclick=()=>{const ok=+$('#c2in').value===6;fb('#c2fb',ok?'ok':'no',ok?'맞아요! 지름은 반지름 2개를 이은 길이, 반지름의 2배예요.':'반지름을 3으로 맞추고 지름 길이를 읽어 볼까요?');if(ok){award('clue2');renderLabTabsOnly();}};
+  if(C.which===3)chipGroup($('#c3q'),'',v=>{const ok=v==='d'&&C.sawD;markChip($('#c3q'),v,v==='d');
+    fb('#c3fb',ok?'ok':'no',v!=='d'?'두 점을 움직여 가장 긴 길이를 찾아볼까요?':ok?'맞아요! 원의 중심을 지나는 선분, 지름이 가장 길어요.':'예상은 좋아요! 선분이 중심을 지나게 직접 만들어 확인해 봐요.');if(ok){award('clue3');renderLabTabsOnly();}});}
+
+// ================= 3. 탐정 회의 =================
+const meet=new Board($('#meetSvg'),12,7);
+const CARDS={
+  a:{name:'㉠',circles:{big:{c:{x:6,y:3.5},r:2,label:'큰 원'},left:{c:{x:4,y:3.5},r:1,label:'왼쪽 작은 원'},right:{c:{x:8,y:3.5},r:1,label:'오른쪽 작은 원'}},
+    q:'작은 원의 중심은 어디에 있나요?',opts:[['in','큰 원의 안쪽'],['on','큰 원 위(원의 선 위)'],['out','큰 원의 바깥']],ans:'on',
+    hint2:'큰 원의 중심에서 작은 원의 중심까지 길이를 큰 원의 반지름과 비교해 볼까요?',
+    okMsg:'맞아요! 작은 원의 중심이 큰 원 위에 있어서, 큰 원의 중심에서 작은 원의 중심까지가 큰 원의 반지름(2단위)이에요.'},
+  b:{name:'㉡',circles:{big:{c:{x:6,y:3.5},r:2,label:'큰 원'},left:{c:{x:5,y:3.5},r:1,label:'왼쪽 작은 원'},right:{c:{x:7,y:3.5},r:1,label:'오른쪽 작은 원'}},
+    q:'작은 원의 지름과 큰 원의 반지름을 비교하면?',opts:[['same','길이가 같다'],['longer','작은 원의 지름이 더 길다'],['shorter','작은 원의 지름이 더 짧다']],ans:'same',
+    hint2:'작은 원의 반지름은 1단위예요. 작은 원의 지름은 몇 단위일까요? 큰 원의 반지름은요?',
+    okMsg:'맞아요! 작은 원의 지름(2단위) = 큰 원의 반지름(2단위). 작은 원 두 개의 지름을 이으면 큰 원의 지름(4단위)이 돼요.'},
+};
+const KS=['big','left','right'];
+function meetTabs(){$$('#meetTabs button').forEach(b=>{const k=b.dataset.card;b.setAttribute('aria-current',k===S.meet.card?'true':'false');
+  const ok={a:S.badges.cardA,b:S.badges.cardB,talk:!!S.meet.conclusion.trim()&&S.badges.debate,compass:S.badges.compass}[k];
+  b.textContent={a:'증거물 ㉠',b:'증거물 ㉡',talk:'짝 회의',compass:'컴퍼스 검증'}[k]+(ok?' ✔':'');});}
+function renderMeet(){const M=S.meet;meetTabs();
+  $('#meetMain').style.display=['a','b'].includes(M.card)?'grid':'none';$('#talkBox').style.display=M.card==='talk'?'flex':'none';$('#compassBox').style.display=M.card==='compass'?'grid':'none';
+  if(M.card==='talk'){setCoach('talk');renderTalk();return;}
+  if(M.card==='compass'){setCoach('compass');renderCompass();return;}
+  setCoach('meet');drawMeet();buildMeetSide();}
+$$('#meetTabs button').forEach(b=>b.onclick=()=>{S.meet.card=b.dataset.card;save();renderMeet();});
+function drawMeet(){const M=S.meet,card=CARDS[M.card],found=M.found[M.card],meas=M.measured[M.card];
+  meet.clear();meet.label('deco',{x:.8,y:.7},'증거물 '+card.name,{'font-size':20,'text-anchor':'start'});
+  for(const k in card.circles){const ci=card.circles[k];meet.circle('target',ci.c,ci.r,{stroke:k===M.sel?'#3d8bfd':'#28364f','stroke-width':k===M.sel?5:3});}
+  for(const k in found){const ci=card.circles[k],f=found[k],col=COLORS[KS.indexOf(k)+1];
+    if(f.ok){meet.dot('live',ci.c,{fill:col,r:7});if(meas[k])radiusLine(meet,'live',ci.c,ci.r,k==='big'?-Math.PI/2:(k==='left'?Math.PI*.75:Math.PI*.25),col);}
+    else{meet.dot('live',f.p,{fill:'#fff',stroke:'#c2410c','stroke-width':3,r:6});meet.label('live',{x:f.p.x,y:f.p.y-.35},'?',{fill:'#c2410c'});}}
+  meet.onTap=p=>{const ci=card.circles[M.sel],d=dist(p,ci.c),ok=d<.32;found[M.sel]={ok,p:{x:r1(p.x),y:r1(p.y)}};
+    if(!ok)M.tries[M.card]++;save();drawMeet();buildMeetSide();
+    fb('#meetFb',ok?'ok':'no',ok?`${ci.label}의 중심을 찾았어요! 이제 자로 반지름을 재어 볼까요?`:
+      (M.tries[M.card]<2?'원 위의 어느 점에서나 거리가 같은 곳은 어디일까요?':d<1?'아주 가까워요! 원의 맨 왼쪽과 맨 오른쪽 점의 한가운데를 찾아봐요.':`${ci.label}의 맨 왼쪽 점과 맨 오른쪽 점을 찾고, 그 가운데를 눌러 봐요.`));};
+  const nOk=Object.values(found).filter(f=>f.ok).length;
+  $('#meetReadout').innerHTML=`<span class="tag blue">고른 원 <b>${card.circles[M.sel].label}</b></span><span class="tag mint">찾은 중심 <b>${nOk}/3</b></span>`+
+    KS.filter(k=>meas[k]).map(k=>`<span class="tag pink">${card.circles[k].label} 반지름 <b>${card.circles[k].r}</b></span>`).join('');}
+function buildMeetSide(){const M=S.meet,card=CARDS[M.card],found=M.found[M.card],meas=M.measured[M.card];
+  const allF=KS.every(k=>found[k]?.ok),allM=KS.every(k=>meas[k]),open=allF&&allM;
+  $('#meetSide').innerHTML=`<div class="card"><h2>증거물 ${card.name} 감정하기</h2><p class="muted" style="margin:0">교과서 77쪽 ② 모양이에요. ① 원을 고르고 ② 그 원의 중심이라고 생각하는 곳을 눌러요.</p>
+    <div class="chips" id="selC" style="margin-top:8px">${Object.entries(card.circles).map(([k,c])=>`<button class="chip" data-v="${k}">${c.label}${found[k]?.ok?' (찾음)':''}</button>`).join('')}</div>
+    <div class="fb" id="meetFb"></div><div class="row"><button class="btn" id="measure" ${found[M.sel]?.ok?'':'disabled'}>자로 반지름 재기</button></div></div>
+    <div class="card" style="${open?'':'opacity:.55'}"><h3>탐정 질문</h3>${open?'':'<p class="muted" style="margin:0">세 원의 중심을 찾고 반지름을 모두 재면 열려요.</p>'}
+    <label class="q">${card.q}</label><div class="chips col" id="relQ">${card.opts.map(o=>`<button class="chip" data-v="${o[0]}" ${open?'':'disabled'}>${o[1]}</button>`).join('')}</div><div class="fb" id="relFb"></div></div>`;
+  chipGroup($('#selC'),M.sel,v=>{M.sel=v;save();drawMeet();buildMeetSide();});
+  $('#measure').onclick=()=>{meas[M.sel]=true;save();drawMeet();buildMeetSide();};
+  let relTries=0;
+  if(open)chipGroup($('#relQ'),'',v=>{const ok=v===card.ans;markChip($('#relQ'),v,ok);
+    if(!ok)relTries++;fb('#relFb',ok?'ok':'no',ok?card.okMsg:(relTries<2?'반지름을 다시 비교해 볼까요?':card.hint2));
+    if(ok){M.rel[M.card]=v;save();award(M.card==='a'?'cardA':'cardB');meetTabs();updateNav();}});}
+let timer=null,tLeft=30;
+function renderTalk(){const M=S.meet;
+  const a=M.swap?'B':'A',b=M.swap?'A':'B';
+  $('#orderText').textContent=`지금 순서: 짝 ${a}가 30초 동안 설명 → 짝 ${b}가 근거 질문 카드로 묻기 → 역할 바꾸기`;
+  $('#pcA').classList.toggle('active',!M.swap);$('#pcB').classList.toggle('active',M.swap);
+  $('#pcAt').textContent='짝 A의 주장'+(!M.swap?' (지금 설명자)':'');$('#pcBt').textContent='짝 B의 주장'+(M.swap?' (지금 설명자)':'');
+  $('#claimA').value=M.claimA;$('#claimB').value=M.claimB;$('#claimA').oninput=e=>{M.claimA=e.target.value;save();};$('#claimB').oninput=e=>{M.claimB=e.target.value;save();};
+  $$('#askCards button').forEach(bt=>{bt.setAttribute('aria-pressed',+bt.dataset.i===M.ask?'true':'false');bt.onclick=()=>{M.ask=+bt.dataset.i;save();renderTalk();};});
+  const list=$('#askList');list.innerHTML='';M.asks.forEach((t,i)=>{const d=document.createElement('div');d.className='qitem';d.innerHTML=`<span class="tag ${i%2?'pink':'blue'}">근거 ${i+1}</span><b>${esc(t.q)}</b><span>${esc(t.a)}</span>`;list.appendChild(d);});
+  chipGroup($('#debate1'),M.d1,v=>{M.d1=v;save();checkDebate();});chipGroup($('#debate2'),M.d2,v=>{M.d2=v;save();checkDebate();});if(M.d1&&M.d2)checkDebate();
+  $('#conclusion').value=M.conclusion;$('#conclusion').oninput=e=>{M.conclusion=e.target.value;save();meetTabs();updateNav();
+    const t=M.conclusion;fb('#conclFb',/반지름/.test(t)&&/중심/.test(t)?'ok':'info',/반지름/.test(t)&&/중심/.test(t)?'중심과 반지름이 모두 들어간 결론이에요!':'중심과 반지름이 각각 무엇을 정하는지 넣어 볼까요?');};}
+$('#swapRole').onclick=()=>{S.meet.swap=!S.meet.swap;save();renderTalk();stopTimer();};
+function stopTimer(){clearInterval(timer);timer=null;tLeft=30;$('#timerView').textContent='30';$('#timerBtn').textContent='30초 타이머 시작';}
+$('#timerBtn').onclick=()=>{if(timer){stopTimer();return;}tLeft=30;$('#timerBtn').textContent='멈추기';
+  timer=setInterval(()=>{tLeft--;$('#timerView').textContent=tLeft;if(tLeft<=0){clearInterval(timer);timer=null;$('#timerView').textContent='끝';$('#timerBtn').textContent='30초 타이머 시작';toast('30초 끝! 이제 짝이 근거 질문을 해요');}},1000);};
+$('#saveAsk').onclick=()=>{const M=S.meet,a=$('#askAns').value.trim();if(M.ask<0){toast('근거 질문 카드를 먼저 골라요');return;}if(!a){toast('친구의 대답을 적어 주세요');return;}
+  M.asks.push({q:$$('#askCards button')[M.ask].textContent,a});$('#askAns').value='';M.ask=-1;save();renderTalk();toast('근거를 기록했어요');};
+function checkDebate(){const M=S.meet;if(!M.d1||!M.d2)return;const ok=M.d1==='n'&&M.d2==='b';
+  fb('#debateFb',ok?'ok':'no',ok?'반례를 찾았어요! 물수제비처럼 중심이 같아도 반지름이 다르면 크기가 다른 원이에요.':M.d1==='y'?'물수제비 무늬를 떠올려 볼까요? 중심이 같은 원들의 크기가 모두 같았나요?':'주장은 잘 판단했어요! 근거를 다시 골라 볼까요?');
+  if(ok){award('debate');meetTabs();}}
+function renderCompass(){const C=S.meet.compass;
+  $('#compassRows').innerHTML=C.rows.map((r,i)=>`<tr><td>${i+1}번 원</td><td>${i+1}cm</td><td><input type="number" step="0.1" min="0" max="20" data-i="${i}" data-k="r" value="${esc(r.r)}" style="width:80px" aria-label="${i+1}번 원 반지름"> cm</td><td><input type="number" step="0.1" min="0" max="40" data-i="${i}" data-k="d" value="${esc(r.d)}" style="width:80px" aria-label="${i+1}번 원 지름"> cm</td></tr>`).join('');
+  $$('#compassRows input').forEach(inp=>inp.oninput=()=>{C.rows[+inp.dataset.i][inp.dataset.k]=inp.value;save();checkCompass();});
+  chipGroup($('#compassSame'),C.same,v=>{C.same=v;save();checkCompass();});
+  $('#compassNote').value=C.note;$('#compassNote').oninput=e=>{C.note=e.target.value;save();checkCompass();};checkCompass(true);}
+function checkCompass(quiet){const C=S.meet.compass;const filled=C.rows.every(r=>r.r!==''&&r.d!=='');
+  if(!filled){if(!quiet)fb('#compassFb','info','세 원의 반지름과 지름을 모두 재어 적어요.');return;}
+  const off=C.rows.map((r,i)=>Math.abs(+r.d-2*+r.r)>0.3).findIndex(x=>x);
+  if(off>=0){fb('#compassFb','no',`${off+1}번 원의 지름과 반지름을 다시 재어 볼까요? 지름은 반지름의 몇 배였나요?`);return;}
+  if(!C.same||!C.note.trim()){fb('#compassFb','info','앱 결과와 비교하고, 알게 된 점까지 써요.');return;}
+  fb('#compassFb','ok','컴퍼스 검증 완료! 직접 그려도 중심은 그대로, 반지름만 바뀌었지요?');award('compass');meetTabs();}
+
+// ================= 4. 탐정 미션 =================
+const mis=new Board($('#misSvg'),12,8);
+const ZONE={c:{x:6,y:3.5},r:2.5};
+const FC={x:6,y:4},FD=2;
+const FMARK=[...Array(6)].map((_,k)=>({x:r1(FC.x+FD*Math.cos(k*Math.PI/3-Math.PI/2)*1000)/1000,y:r1(FC.y+FD*Math.sin(k*Math.PI/3-Math.PI/2)*1000)/1000}));
+FMARK.forEach((m,k)=>{m.x=FC.x+FD*Math.cos(k*Math.PI/3-Math.PI/2);m.y=FC.y+FD*Math.sin(k*Math.PI/3-Math.PI/2);});
+function renderStars(){$('#starView').innerHTML=['snail','flower','bonus'].map(k=>`<span class="${S.mis.passed[k]?'got':''}" title="${{snail:'미션 1',flower:'미션 2',bonus:'보너스'}[k]}">★</span>`).join('')+`<span style="font-size:16px;color:var(--ink);align-self:center;margin-left:6px">${stars()}/3</span>`;}
+function misTabs(){$$('#misTabs button').forEach(b=>{const k=b.dataset.mis;b.setAttribute('aria-current',k===S.mis.sub?'true':'false');
+  b.textContent={snail:'미션 1: 달팽이 집',flower:'미션 2: 꽃무늬',bonus:'보너스: 틀린 주장 잡기'}[k]+(S.mis.passed[k]?' ★':'');});renderStars();}
+function renderMis(){const M=S.mis;misTabs();const isB=M.sub==='bonus';
+  $('#misMain').style.display=isB?'none':'grid';$('#bonusBox').style.display=isB?'block':'none';setCoach(M.sub);
+  if(isB){renderBonus();return;}$('#misSide').dataset.mode='';drawMis();}
+$$('#misTabs button').forEach(b=>b.onclick=()=>{S.mis.sub=b.dataset.mis;save();renderMis();});
+function snailDeco(){const g=mis.L.deco,u=U;
+  el('path',{d:`M${1.6*u} ${7.5*u} Q${1.4*u} ${6.4*u} ${3*u} ${6.35*u} L${9.4*u} ${6.35*u} Q${10.1*u} ${6.3*u} ${10.2*u} ${5.5*u} L${10.3*u} ${4.9*u} Q${11*u} ${4.1*u} ${11.6*u} ${4.9*u} L${11.6*u} ${7.1*u} Q${11.6*u} ${7.6*u} ${11*u} ${7.6*u} L${2*u} ${7.6*u} Z`,fill:'#ffb3c8',stroke:'#e2789a','stroke-width':3,'stroke-linejoin':'round'},g);
+  [[10.6,4.9,10.25,3.7],[11.3,4.9,11.55,3.7]].forEach(([x1,y1,x2,y2])=>{el('line',{x1:x1*u,y1:y1*u,x2:x2*u,y2:y2*u,stroke:'#e2789a','stroke-width':4,'stroke-linecap':'round'},g);
+    el('circle',{cx:x2*u,cy:y2*u,r:9,fill:'#fff',stroke:'#e2789a','stroke-width':2},g);el('circle',{cx:x2*u+2,cy:y2*u+1,r:4,fill:'#28364f'},g);});
+  el('path',{d:`M${10.75*u} ${5.7*u} Q${11*u} ${5.95*u} ${11.25*u} ${5.7*u}`,fill:'none',stroke:'#28364f','stroke-width':2.5,'stroke-linecap':'round'},g);
+  el('ellipse',{cx:10.6*u,cy:5.45*u,rx:6,ry:3.5,fill:'#ff7aa0'},g);}
+function drawMis(){const M=S.mis,k=M.sub;mis.clear();
+  if(k==='snail'){const D=M.snail;snailDeco();mis.circle('target',ZONE.c,ZONE.r,{stroke:'#b8c5d8','stroke-width':2,'stroke-dasharray':'4 6'});
+    mis.label('target',{x:ZONE.c.x,y:ZONE.c.y-ZONE.r-.2},'달팽이 집 자리',{'font-size':14,fill:'#7d8aa1'});
+    D.stamps.forEach((s,i)=>{const col=COLORS[i%7];mis.circle('stamps',s.c,s.r,{stroke:col,'stroke-width':3.5,fill:M.passed.snail?col:'none','fill-opacity':M.passed.snail?.16:0});mis.dot('stamps',s.c,{fill:col,r:4});});
+    mis.circle('live',D.c,D.r,{stroke:'#28364f','stroke-width':3,'stroke-dasharray':'7 6'});radiusLine(mis,'live',D.c,D.r,-.9,'#c23c61');
+    mis.dot('handles',D.c,{r:10,fill:'#c2410c'});
+    const place=p=>{D.c=mis.inB({x:snap(p.x),y:snap(p.y)},.5);};
+    mis.handles=[{pos:()=>D.c,move:p=>{place(p);drawMis();},end:save}];mis.onTap=p=>{place(p);save();drawMis();};
+    $('#misReadout').innerHTML=`<span class="tag">컴퍼스 침(중심) <b>(${D.c.x}, ${D.c.y})</b></span><span class="tag pink">반지름 <b>${D.r}</b></span><span class="tag mint">그린 원 <b>${D.stamps.length}</b>개</span>`;}
+  else{const D=M.flower;
+    FMARK.forEach((m,i)=>{const sel=i===D.sel;el('circle',{cx:m.x*U,cy:m.y*U,r:sel?11:8,fill:sel?'#3d8bfd':'#ffc23c',stroke:sel?'#1f4fa8':'#b07c00','stroke-width':2.5},mis.L.target);mis.label('target',{x:m.x+(m.x>FC.x+.1?.45:m.x<FC.x-.1?-.45:0),y:m.y+(Math.abs(m.x-FC.x)<.1?(m.y<FC.y?-.35:.6):.1)},String(i+1),{'font-size':15});});
+    el('circle',{cx:FC.x*U,cy:FC.y*U,r:4,fill:'#5d6b85'},mis.L.target);
+    Object.entries(D.circles).forEach(([i,r])=>{const m=FMARK[+i];mis.circle('stamps',m,r,{stroke:COLORS[+i%7],'stroke-width':3.5,fill:M.passed.flower?COLORS[+i%7]:'none','fill-opacity':M.passed.flower?.12:0});});
+    mis.circle('live',FMARK[D.sel],D.r,{stroke:'#28364f','stroke-width':3,'stroke-dasharray':'7 6'});radiusLine(mis,'live',FMARK[D.sel],D.r,-.6,'#c23c61');
+    mis.handles=[];mis.onTap=p=>{let best=-1,bd=.7;FMARK.forEach((m,i)=>{const d=dist(p,m);if(d<bd){bd=d;best=i;}});if(best>=0){D.sel=best;save();drawMis();}else say('노란 중심점을 눌러서 골라요.');};
+    $('#misReadout').innerHTML=`<span class="tag blue">고른 중심점 <b>${D.sel+1}번</b></span><span class="tag pink">반지름 <b>${D.r}</b></span><span class="tag mint">놓은 원 <b>${Object.keys(D.circles).length}</b>/6</span>`;}
+  if($('#misSide').dataset.mode!==k){$('#misSide').dataset.mode=k;buildMisSide();}}
+function buildMisSide(){const M=S.mis,k=M.sub,D=M[k],side=$('#misSide');
+  const intro=k==='snail'?`<h2>미션 1. 달팽이 집 완성하기 (교과서 ③)</h2><p style="margin:0">판을 눌러 <b>컴퍼스 침(중심)</b>을 꽂고, 반지름을 정해 <b>원 그리기</b>를 눌러요. 원을 그려 달팽이 집을 완성해요.</p>`
+    :`<h2>미션 2. 꽃무늬 복구하기</h2><p style="margin:0">사라진 꽃무늬 도안을 복구해요. <b>노란 중심점 6개</b>를 하나씩 눌러 고르고, <b>원 놓기</b>로 원을 놓아요. 꽃잎 원 6개는 모두 같은 크기여야 해요.</p>`;
+  side.innerHTML=`<div class="card">${intro}
+    <div class="slider"><label for="mR">반지름</label><input id="mR" type="range" min="0.5" max="${k==='snail'?3:2.5}" step="0.5" value="${D.r}"><span class="val" id="mRv">${D.r}단위</span></div>
+    <div class="row"><button class="btn pink" id="mStamp">${k==='snail'?'원 그리기':'원 놓기'}</button><button class="btn ghost" id="mUndo">${k==='snail'?'하나 지우기':'고른 점의 원 지우기'}</button><button class="btn ghost" id="mClear">모두 지우기</button></div></div>
+    <div class="card"><label class="q" for="mWhy">그린 방법과 이유 <span class="need">(별을 받으려면 필수)</span></label>
+    <textarea id="mWhy" placeholder="${k==='snail'?'컴퍼스 침을 ○○에 꽂고, 반지름을 ○, ○, ○로 바꾸어 그렸다. 왜냐하면…':'반지름을 모두 ○로 같게 하고 중심만 옮겼다. 왜냐하면…'}">${esc(D.why)}</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn mint" id="mCheck">검사하기</button></div>
+    <ul class="checks" id="mChecks"></ul><div class="fb" id="mFb"></div><div id="mAuto"></div></div>`;
+  $('#mR').oninput=e=>{D.r=+e.target.value;$('#mRv').textContent=D.r+'단위';save();drawMis();};
+  $('#mStamp').onclick=()=>{if(k==='snail'){if(D.stamps.some(s=>s.r===D.r&&dist(s.c,D.c)<.01)){toast('똑같은 원이 이미 있어요');return;}D.stamps.push({c:{...D.c},r:D.r});}else D.circles[D.sel]=D.r;
+    if(M.passed[k]){M.passed[k]=false;updateCounts();misTabs();}save();drawMis();};
+  $('#mUndo').onclick=()=>{if(k==='snail')D.stamps.pop();else delete D.circles[D.sel];save();drawMis();};
+  $('#mClear').onclick=()=>{if(k==='snail')D.stamps=[];else D.circles={};M.passed[k]=false;updateCounts();misTabs();save();drawMis();};
+  $('#mWhy').oninput=e=>{D.why=e.target.value;save();};
+  $('#mCheck').onclick=()=>checkMis();
+  if(M.passed[k])checkMis(true);}
+function checkMis(silent){const M=S.mis,k=M.sub,D=M[k];let checks=[],pointed='';
+  if(k==='snail'){const st=D.stamps;const sameC=st.length>0&&st.every(s=>dist(s.c,st[0].c)<.01),diffR=new Set(st.map(s=>s.r)).size===st.length,inZ=st.length>0&&st.every(s=>dist(s.c,ZONE.c)+s.r<=ZONE.r+.55);
+    checks=[[st.length>=3,'원을 3개 이상 그렸어요'],[st.length>=2&&sameC,'모든 원의 중심이 같아요'],[st.length>=2&&diffR,'원마다 반지름이 달라요'],[inZ,'달팽이 등 위(집 자리)에 그렸어요']];
+    pointed=st.length<3?'원이 아직 3개가 안 돼요. 반지름을 바꿔 더 그려 볼까요?':!sameC?'원들의 중심이 서로 달라요. 컴퍼스 침을 한 곳에 꽂은 채로 그려 볼까요?':!diffR?'반지름이 같은 원이 겹쳐 있어요. 반지름을 다르게 해 볼까요?':'가장 큰 원이 집 자리를 벗어났어요. 반지름을 줄여 볼까요?';}
+  else{const ent=Object.entries(D.circles),rs=ent.map(e=>e[1]),sameR=rs.length>0&&rs.every(r=>r===rs[0]);
+    checks=[[ent.length===6,'중심점 6개에 모두 원을 놓았어요'],[ent.length>=2&&sameR,'꽃잎 원의 반지름이 모두 같아요']];
+    const empty=FMARK.map((_,i)=>i).filter(i=>D.circles[i]===undefined).map(i=>i+1);
+    const counts={};rs.forEach(r=>counts[r]=(counts[r]||0)+1);const major=+Object.entries(counts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const odd=ent.filter(e=>e[1]!==major).map(e=>+e[0]+1);
+    pointed=empty.length?`${empty.join(', ')}번 중심점에 아직 원이 없어요.`:`${odd.join(', ')}번 원의 반지름이 다른 원과 달라요.`;}
+  const why=D.why.trim();checks.push([why.length>=8,'그린 방법과 이유를 썼어요']);
+  $('#mChecks').innerHTML=checks.map(([ok,t])=>`<li class="${ok?'ok':'no'}"><span class="b">${ok?'통과':'다시'}</span>${t}</li>`).join('');
+  const all=checks.every(c=>c[0]);
+  if(all){if(!M.passed[k]){M.passed[k]=true;save();updateCounts();misTabs();toast('탐정 별 획득! ★');}drawMis();
+    if(k==='snail'){const rs=[...D.stamps.map(s=>s.r)].sort((a,b)=>a-b);fb('#mFb','ok','달팽이 집 완성! 컴퍼스 침은 그대로, 벌린 길이만 바꿨지요?');
+      $('#mAuto').innerHTML=`<p class="tag mint" style="display:block;border-radius:14px">탐정 기록: 중심 (${D.stamps[0].c.x}, ${D.stamps[0].c.y}), 반지름 ${rs.join(', ')}단위</p>`;}
+    else{const r=Object.values(D.circles)[0];
+      fb('#mFb','ok',r===FD?'사라진 도안과 똑같아요! 반지름이 가운데에서 중심점까지의 거리(2단위)와 같아서 꽃잎이 가운데 점에서 만나요.':'꽃무늬 통과! 도전: 꽃잎이 모두 가운데 점에서 만나게 하려면 반지름을 몇 단위로 해야 할까요?');
+      $('#mAuto').innerHTML=`<p class="tag mint" style="display:block;border-radius:14px">탐정 기록: 반지름은 모두 ${r}단위로 같게, 중심만 6곳으로 옮겼어요.</p>`;}
+    return;}
+  if(silent)return;M.tries[k]++;save();$('#mAuto').innerHTML='';
+  const failCond=checks.filter(c=>!c[0]).map(c=>c[1]);
+  if(failCond.length===1&&failCond[0].includes('이유')){fb('#mFb','no','조건은 모두 지켰어요! 그린 방법과 이유를 “왜냐하면”을 넣어 써 볼까요?');return;}
+  fb('#mFb','no',M.tries[k]<2?(k==='snail'?'달팽이 집의 원들은 어디를 중심으로 말려 있을까요?':'반지름을 다시 비교해 볼까요?'):pointed);}
+function renderBonus(){const B=S.mis.bonus;
+  chipGroup($('#bonusQ'),B.choice,v=>{B.choice=v;save();});$('#bonusWhy').value=B.why;$('#bonusWhy').oninput=e=>{B.why=e.target.value;save();};
+  if(S.mis.passed.bonus)fb('#bonusFb','ok','보너스 통과! 설명은 선생님과 함께 확인해요.');}
+$('#bonusCheck').onclick=()=>{const M=S.mis,B=M.bonus,okC=B.choice==='b',okW=/반지름|컴퍼스|벌|길이|지름/.test(B.why)&&B.why.trim().length>=8;
+  if(B.choice)markChip($('#bonusQ'),B.choice,okC);
+  if(okC&&okW){if(!M.passed.bonus){M.passed.bonus=true;save();updateCounts();misTabs();toast('탐정 별 획득! ★');}fb('#bonusFb','ok','정답! 원의 크기는 반지름이 정해요. 중심은 그대로 두어도 돼요. (설명은 선생님과 함께 확인해요)');return;}
+  M.tries.bonus++;save();
+  if(!B.choice){fb('#bonusFb','no','알맞은 까닭을 먼저 골라 볼까요?');return;}
+  if(!okC){fb('#bonusFb','no',M.tries.bonus<2?'원의 크기를 결정하는 길이는 무엇일까요?':'실험 A에서 중심을 잠갔는데도 원이 커졌지요? 그때 무엇을 바꿨나요?');return;}
+  fb('#bonusFb','no','고른 까닭은 좋아요! 설명에 원의 크기를 정하는 것이 무엇인지 넣어 써 볼까요?');};
+
+// ================= 5. 탐정 보고서 =================
+const PS={c:'중심을 옮기면 된다',r:'반지름을 바꾸면 된다',both:'중심과 반지름을 둘 다 바꿔야 한다',dk:'잘 모르겠다'},PC={same:'모두 같은 곳',diff:'원마다 다른 곳',dk:'잘 모르겠다'};
+function renderReport(){setCoach('report');const R=S.rep,p=S.pred;
+  $('#repPred').innerHTML=`<p style="margin:0">크기가 다른 원을 그리려면: <b>${esc(PS[p.size]||'-')}</b></p><p style="margin:4px 0">물수제비 원의 중심: <b>${esc(PC[p.center]||'-')}</b></p><p class="muted" style="margin:0">이유: ${esc(p.why||'-')}</p>`;
+  $('#repFinal').innerHTML=S.meet.conclusion.trim()?`<p style="margin:0"><b>${esc(S.meet.conclusion)}</b></p>`:'<p class="muted" style="margin:0">3화면 짝 회의에서 최종 결론을 써 주세요.</p>';
+  ['p1','p2','p3'].forEach(k=>{$('#'+k).value=R[k];$('#'+k).onchange=e=>{R[k]=e.target.value;save();checkP();};});
+  $('#p4').value=R.p4;$('#p4').oninput=e=>{R.p4=e.target.value;save();checkP();};
+  $('#thinkNow').value=R.now;$('#thinkNow').oninput=e=>{R.now=e.target.value;save();};
+  checkP(true);
+  const A=S.lab.A,B=S.lab.B,M=S.meet;
+  $('#repSummary').innerHTML=`<div class="qlist">
+    <div class="qitem"><span class="tag ${A.saved?'mint':''}">실험 A ${A.saved?'저장':'미완료'}</span>${esc(A.rec.find||'-')}</div>
+    <div class="qitem"><span class="tag ${B.saved?'mint':''}">실험 B ${B.saved?'저장':'미완료'}</span>${esc(B.rec.find||'-')}</div>
+    <div class="qitem"><span class="tag blue">짝 토의 근거 ${M.asks.length}개</span>${esc(M.asks.slice(-1)[0]?.a||'-')}</div>
+    <div class="qitem"><span class="tag ${S.badges.compass?'mint':''}">컴퍼스 검증</span>${M.compass.rows.map((r,i)=>`${i+1}번 ${r.r||'-'}cm`).join(' · ')}</div>
+    <div class="qitem"><span class="tag pink">탐정 별 ${stars()}/3</span>미션 1 ${S.mis.passed.snail?'성공':'도전 중'} · 미션 2 ${S.mis.passed.flower?'성공':'도전 중'} · 보너스 ${S.mis.passed.bonus?'성공':'도전 중'}</div></div>`;
+  $('#badgeGrid').innerHTML=BADGES.map(b=>`<div class="badge ${S.badges[b[0]]?'got':''}"><span class="ic">${S.badges[b[0]]?'★':'☆'}</span><b>${b[1]}</b><br>${b[2]}${S.badges[b[0]]?'':'<br>(아직)'}</div>`).join('');
+  const qr=$('#qResolve');qr.innerHTML='';
+  S.questions.forEach(q=>{const d=document.createElement('label');d.className='qitem';d.innerHTML=`<input type="checkbox" ${q.solved?'checked':''}><span>${esc(q.text)}</span><span class="tag">${q.solved?'해결':'더 탐구'}</span>`;
+    d.querySelector('input').onchange=e=>{q.solved=e.target.checked;save();renderReport();};qr.appendChild(d);});}
+function checkP(quiet){const R=S.rep;if(!(R.p1&&R.p2&&R.p3&&R.p4.trim())){if(!quiet)fb('#pFb','info','빈칸을 모두 채워요.');else $('#pFb').textContent='';return;}
+  const ok=R.p1==='중심'&&R.p2==='반지름'&&R.p3==='중심';
+  if(!ok){fb('#pFb','no','실험 A에서 잠긴 것과 바꾼 것을 다시 떠올려 볼까요?');return;}
+  if(R.p4.trim().length<6){fb('#pFb','no','이유를 조금 더 써 볼까요?');return;}
+  fb('#pFb','ok','원의 비밀을 밝혀냈어요!');award('final');}
+function reportData(){const p=S.pred,A=S.lab.A,B=S.lab.B,M=S.meet,R=S.rep,mi=S.mis;
+  return [
+    ['팀 이름',S.team||'(입력 안 함)'],['작성 일시',new Date().toLocaleString('ko-KR')],
+    ['처음 예상: 크기가 다른 원',PS[p.size]||''],['처음 예상: 물수제비 원의 중심',PC[p.center]||''],['예상 이유',p.why],
+    ...S.questions.map((q,i)=>[`탐정 질문 ${i+1}`,`${q.text} (${q.solved?'해결':'더 탐구'})`]),
+    ['실험 A 변한 것',A.rec.chg],['실험 A 변하지 않은 것',A.rec.same],['실험 A 발견한 점',A.rec.find],
+    ['실험 B 변한 것',B.rec.chg],['실험 B 변하지 않은 것',B.rec.same],['실험 B 발견한 점',B.rec.find],
+    ['증거물 ㉠',S.badges.cardA?'감정 완료':'미완료'],['증거물 ㉡',S.badges.cardB?'감정 완료':'미완료'],
+    ['짝 A의 주장',M.claimA],['짝 B의 주장',M.claimB],...M.asks.map((t,i)=>[`짝 토의 근거 ${i+1}`,`${t.q} → ${t.a}`]),
+    ['짝의 최종 결론',M.conclusion],
+    ...M.compass.rows.map((r,i)=>[`컴퍼스 검증 ${i+1}번 원`,`반지름 ${r.r||'-'}cm, 지름 ${r.d||'-'}cm`]),['컴퍼스 검증 소감',(M.compass.same==='same'?'앱과 같았음. ':M.compass.same==='diff'?'조금 달랐음. ':'')+M.compass.note],
+    ['미션 1 달팽이 집',mi.passed.snail?'성공':'도전 중'],['미션 1 설명',mi.snail.why],['미션 2 꽃무늬',mi.passed.flower?'성공':'도전 중'],['미션 2 설명',mi.flower.why],
+    ['보너스',mi.passed.bonus?'성공':'도전 중'],['보너스 설명',mi.bonus.why],['탐정 별',`${stars()}/3`],['탐정 배지',`${Object.keys(S.badges).length}/13`],
+    ['완성 문장',`크기가 다른 원을 그리려면 ${R.p1||'___'}은(는) 그대로 두고 ${R.p2||'___'}을(를) 바꾼다. 원의 위치를 바꾸려면 ${R.p3||'___'}을(를) 옮긴다. 그 이유는 ${R.p4||'___'}이다.`],
+    ['생각의 변화',R.now]];}
+function stamp(){const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}_${z(d.getHours())}${z(d.getMinutes())}`;}
+let dlNS;const getDL=async()=>{if(dlNS!==undefined)return dlNS;try{dlNS=(window.claude&&typeof window.claude.use==='function')?await window.claude.use('downloads'):null;}catch(e){dlNS=null;}return dlNS;};
+async function download(name,text,type){
+  const dl=await getDL();
+  if(dl){try{await dl.save({filename:name,data:text});fb('#exportFb','ok',`${name} 파일을 저장했어요.`);}
+    catch(e){const c=e&&e.code;fb('#exportFb','no',c==='declined'?'저장을 취소했어요.':c==='rate_limited'?'잠시 뒤 다시 눌러 주세요.':'이 화면에서는 파일 저장이 안 돼요. 복사하기를 써 주세요.');}return;}
+  try{const blob=new Blob([text],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);fb('#exportFb','ok',`${name} 파일을 저장했어요. (저장이 안 되면 복사하기를 써 주세요)`);}catch(e){fb('#exportFb','no','이 화면에서는 파일 저장이 막혀 있어요. 복사하기를 써 주세요.');}}
+const asText=()=>'[원의 비밀 탐정단 보고서]\n'+reportData().map(([k,v])=>`■ ${k}: ${v||'-'}`).join('\n');
+$('#txtBtn').onclick=()=>download(`circle-detective_report_${stamp()}.txt`,asText(),'text/plain;charset=utf-8');
+$('#csvBtn').onclick=()=>{const q=v=>'"'+String(v??'').replace(/"/g,'""').replace(/\r?\n/g,' ')+'"';
+  download(`circle-detective_report_${stamp()}.csv`,'﻿'+[['항목','내용'],...reportData()].map(r=>r.map(q).join(',')).join('\r\n'),'text/csv;charset=utf-8');};
+$('#copyBtn').onclick=async()=>{try{await navigator.clipboard.writeText(asText());fb('#exportFb','ok','보고서를 복사했어요.');}catch(e){fb('#exportFb','no','복사가 막혀 있어요. 텍스트 저장을 써 주세요.');}};
+$('#printBtn').onclick=()=>{$('#printSheet').innerHTML=`<h1>원의 비밀 탐정단 보고서</h1><table>${reportData().map(([k,v])=>`<tr><th>${esc(k)}</th><td>${esc(v||'-')}</td></tr>`).join('')}</table>`;
+  try{window.print();fb('#exportFb','info','인쇄 창에서 「PDF로 저장」을 고르면 PDF가 돼요. 인쇄 창이 안 뜨면 파일(index.html)로 열어 인쇄해 주세요.');}catch(e){fb('#exportFb','no','이 화면에서는 인쇄가 막혀 있어요. 파일로 열어 인쇄해 주세요.');}};
+
+// ---------------- 교사용 안내·초기화 ----------------
+$('#openGuide').onclick=()=>{aiState();$('#guideModal').classList.add('on');};
+$('#closeGuide').onclick=()=>$('#guideModal').classList.remove('on');
+$('#guideModal').onclick=e=>{if(e.target.id==='guideModal')$('#guideModal').classList.remove('on');};
+$('#resetAll').onclick=()=>$('#resetModal').classList.add('on');
+$('#resetNo').onclick=()=>$('#resetModal').classList.remove('on');
+$('#resetYes').onclick=()=>{const ai=S.ai;S=fresh();S.ai=ai;saveNow();$('#resetModal').classList.remove('on');$('#teamName').value='';
+  ['#labSide','#misSide'].forEach(s=>$(s).dataset.mode='');$('#predFb').textContent='';$('#qFb').textContent='';updateCounts();go('case');toast('모든 기록을 지웠어요');};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$$('.modal').forEach(m=>m.classList.remove('on'));});
+
+if(innerWidth<700)$('#coach').classList.add('min');
+aiState();updateCounts();go(S.screen||'case');
+})();
+</script>
+</body>
+</html>
